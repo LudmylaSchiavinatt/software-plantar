@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLANTAR - Tabelas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        :root { --sidebar-w:260px; --primary:#2e7d32; --bg:#f5f6fa; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:var(--bg); }
+
+        .sidebar {
+            position:fixed; top:0; left:0; width:var(--sidebar-w); height:100vh;
+            background:linear-gradient(180deg,#1a2332 0%,#0f1923 100%);
+            color:#fff; z-index:100; display:flex; flex-direction:column;
+            box-shadow:4px 0 20px rgba(0,0,0,.15);
+        }
+        .sidebar-brand { padding:24px 20px; border-bottom:1px solid rgba(255,255,255,.06); font-size:1.2rem; font-weight:800; }
+        .sidebar-brand i { color:#4caf50; margin-right:6px; }
+        .sidebar-nav { flex:1; padding:16px 0; overflow-y:auto; }
+        .sidebar-section { padding:6px 20px; font-size:.7rem; text-transform:uppercase; letter-spacing:2px; color:rgba(255,255,255,.3); margin-top:16px; }
+        .sidebar-link {
+            display:flex; align-items:center; gap:12px; padding:11px 20px;
+            color:rgba(255,255,255,.6); text-decoration:none; font-size:.92rem;
+            transition:all .2s; border-left:3px solid transparent;
+        }
+        .sidebar-link:hover { color:#fff; background:rgba(255,255,255,.05); }
+        .sidebar-link.active { color:#fff; background:rgba(76,175,80,.12); border-left-color:#4caf50; font-weight:600; }
+        .sidebar-link i { font-size:1.1rem; width:22px; text-align:center; }
+        .sidebar-footer { padding:16px 20px; border-top:1px solid rgba(255,255,255,.06); font-size:.78rem; color:rgba(255,255,255,.25); }
+
+        .main { margin-left:var(--sidebar-w); min-height:100vh; }
+        .topbar {
+            background:#fff; padding:16px 28px; display:flex; align-items:center; justify-content:space-between;
+            box-shadow:0 1px 4px rgba(0,0,0,.06); position:sticky; top:0; z-index:50;
+        }
+        .topbar h1 { font-size:1.25rem; font-weight:700; color:#1a2332; margin:0; }
+        .page-content { padding:28px; }
+
+        /* Tabs */
+        .tab-bar { display:flex; gap:4px; background:#fff; border-radius:12px; padding:6px; box-shadow:0 2px 8px rgba(0,0,0,.05); margin-bottom:24px; }
+        .tab-btn {
+            flex:1; padding:12px 8px; border:none; background:transparent; border-radius:8px;
+            font-weight:600; font-size:.88rem; color:#666; cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center; gap:6px;
+        }
+        .tab-btn:hover { color:#1a2332; background:#f5f6fa; }
+        .tab-btn.active { background:var(--primary); color:#fff; }
+        .tab-section { display:none; }
+        .tab-section.active { display:block; }
+
+        /* Table cards */
+        .tbl-card { background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.05); overflow:hidden; margin-bottom:24px; }
+        .tbl-card-header {
+            padding:16px 20px; font-weight:700; font-size:.95rem; border-bottom:1px solid #f0f0f0;
+            display:flex; align-items:center; justify-content:space-between;
+        }
+        .tbl-card-header span { display:flex; align-items:center; gap:8px; }
+        .tbl-card-body { padding:0; }
+        .table { margin:0; font-size:.88rem; }
+        .table thead th { background:#f8f9fa; font-weight:700; font-size:.78rem; text-transform:uppercase; letter-spacing:.5px; color:#555; padding:12px 16px; border:none; }
+        .table tbody td { padding:10px 16px; vertical-align:middle; border-bottom:1px solid #f5f5f5; }
+        .table-hover tbody tr:hover { background:rgba(76,175,80,.04); }
+        .badge-status { padding:4px 10px; border-radius:20px; font-weight:500; font-size:.75rem; }
+        .badge-paga,.badge-pago { background:#c8e6c9; color:#1b5e20; }
+        .badge-pendente,.badge-emitida { background:#fff3e0; color:#e65100; }
+        .badge-cancelada,.badge-cancelado { background:#ffebee; color:#b71c1c; }
+        .valor-negativo { color:#c62828; }
+        .valor-positivo { color:#2e7d32; }
+
+        .search-box { background:#fff; padding:12px 20px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.05); margin-bottom:20px; display:flex; gap:12px; }
+        .search-box input { flex:1; border:1px solid #e0e0e0; border-radius:8px; padding:8px 14px; font-size:.9rem; }
+        .search-box input:focus { outline:none; border-color:#4caf50; }
+        .search-box button { background:var(--primary); border:none; color:#fff; border-radius:8px; padding:8px 20px; font-weight:600; cursor:pointer; }
+
+        .counter-badge { background:#e8f5e9; color:#2e7d32; padding:3px 10px; border-radius:12px; font-size:.78rem; font-weight:600; }
+
+        @media(max-width:768px) { .sidebar{width:0;overflow:hidden;} .main{margin-left:0;} }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand"><i class="bi bi-flower2" style="color:#4caf50"></i> PLANTAR</div>
+        <nav class="sidebar-nav">
+            <div class="sidebar-section">Principal</div>
+            <a href="/" class="sidebar-link"><i class="bi bi-house"></i> Landing Page</a>
+            <div class="sidebar-section">Painel</div>
+            <a href="/painel/graficos" class="sidebar-link"><i class="bi bi-bar-chart-line"></i> Gráficos</a>
+            <a href="/painel/tabelas" class="sidebar-link active"><i class="bi bi-table"></i> Tabelas</a>
+            <a href="/painel/cadastros" class="sidebar-link"><i class="bi bi-plus-circle"></i> Cadastros</a>
+            <a href="/painel/visualizador" class="sidebar-link"><i class="bi bi-grid-3x3"></i> Visualizador BD</a>
+            <div class="sidebar-section">Dados</div>
+            <a href="/painel/tabelas#prefeituras" class="sidebar-link" onclick="switchTab('prefeituras')"><i class="bi bi-building"></i> Prefeituras</a>
+            <a href="/painel/tabelas#fornecedores" class="sidebar-link" onclick="switchTab('fornecedores')"><i class="bi bi-truck"></i> Fornecedores</a>
+            <a href="/painel/tabelas#notas" class="sidebar-link" onclick="switchTab('notas')"><i class="bi bi-receipt"></i> Notas Fiscais</a>
+            <a href="/painel/tabelas#pagamentos" class="sidebar-link" onclick="switchTab('pagamentos')"><i class="bi bi-cash-coin"></i> Pagamentos</a>
+            <div class="sidebar-section">Ferramentas</div>
+            <a href="/api/banco/excel" class="sidebar-link"><i class="bi bi-file-earmark-excel"></i> Exportar Excel</a>
+            <a href="/api/banco/download" class="sidebar-link"><i class="bi bi-download"></i> Baixar BD</a>
+            <label class="sidebar-link" style="cursor:pointer"><i class="bi bi-upload"></i> Enviar BD<input type="file" accept=".db,.sqlite,.sqlite3" onchange="uploadBD(this)" style="display:none"></label>
+        </nav>
+        <div class="sidebar-footer">
+            <div style="font-size:.65rem;color:rgba(255,255,255,.35);line-height:1.5">
+                <i class="bi bi-mortarboard-fill" style="color:#c62828"></i> UFSCar &nbsp;
+                <i class="bi bi-flower1" style="color:#4caf50"></i> CeMECA &nbsp;
+                <i class="bi bi-truck" style="color:#ff9800"></i> DeepTech Kokue<br>
+                Apoio: MDA - Programa Mais Gestão
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main">
+        <div class="topbar">
+            <div>
+                <h1 style="margin:0"><i class="bi bi-table"></i> Tabelas</h1>
+                <small style="color:#888;font-size:.72rem">PLANTAR - Planilha Coletiva para a Administração de Contratos da Agricultura Familiar</small>
+            </div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0" style="font-size:.85rem"><li class="breadcrumb-item"><a href="/">Início</a></li><li class="breadcrumb-item active">Tabelas</li></ol>
+            </nav>
+        </div>
+
+        <div class="page-content">
+            <!-- Search -->
+            <div class="search-box">
+                <input type="text" id="busca" placeholder="Buscar em todas as tabelas...">
+                <button onclick="filtrar()"><i class="bi bi-search"></i> Buscar</button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tab-bar">
+                <button class="tab-btn active" data-tab="prefeituras" onclick="switchTab('prefeituras')"><i class="bi bi-building"></i> Prefeituras</button>
+                <button class="tab-btn" data-tab="fornecedores" onclick="switchTab('fornecedores')"><i class="bi bi-truck"></i> Fornecedores</button>
+                <button class="tab-btn" data-tab="notas" onclick="switchTab('notas')"><i class="bi bi-receipt"></i> Notas Fiscais</button>
+                <button class="tab-btn" data-tab="pagamentos" onclick="switchTab('pagamentos')"><i class="bi bi-cash-coin"></i> Pagamentos</button>
+            </div>
+
+            <!-- Prefeituras -->
+            <div class="tab-section active" id="sec-prefeituras">
+                <div class="tbl-card">
+                    <div class="tbl-card-header">
+                        <span><i class="bi bi-building"></i> Resultado por Prefeitura</span>
+                        <span class="counter-badge" id="cnt-pref">0 registros</span>
+                    </div>
+                    <div class="tbl-card-body table-responsive">
+                        <table class="table table-hover" id="tbl-pref">
+                            <thead><tr>
+                                <th>Prefeitura</th><th>Cidade</th><th class="text-end">Notas</th>
+                                <th class="text-end">Total Contratos</th><th class="text-end">Recebido</th>
+                                <th class="text-end">A Receber</th><th class="text-end">Custos</th><th class="text-end">Resultado</th>
+                            </tr></thead><tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fornecedores -->
+            <div class="tab-section" id="sec-fornecedores">
+                <div class="tbl-card">
+                    <div class="tbl-card-header">
+                        <span><i class="bi bi-truck"></i> Resumo por Fornecedor</span>
+                        <span class="counter-badge" id="cnt-forn">0 registros</span>
+                    </div>
+                    <div class="tbl-card-body table-responsive">
+                        <table class="table table-hover" id="tbl-forn">
+                            <thead><tr>
+                                <th>Fornecedor</th><th class="text-end">Pagamentos</th><th class="text-end">Bruto</th>
+                                <th class="text-end">Descontos</th><th class="text-end">Líquido</th><th class="text-end">A Pagar</th>
+                            </tr></thead><tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notas Fiscais -->
+            <div class="tab-section" id="sec-notas">
+                <div class="tbl-card">
+                    <div class="tbl-card-header">
+                        <span><i class="bi bi-receipt"></i> Notas Fiscais</span>
+                        <span class="counter-badge" id="cnt-notas">0 registros</span>
+                    </div>
+                    <div class="tbl-card-body table-responsive">
+                        <table class="table table-hover" id="tbl-notas">
+                            <thead><tr>
+                                <th>Nº Nota</th><th>Cliente</th><th>Data</th><th class="text-end">Valor NF</th>
+                                <th class="text-end">Custos</th><th class="text-end">Líquido</th><th>Status</th>
+                            </tr></thead><tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagamentos -->
+            <div class="tab-section" id="sec-pagamentos">
+                <div class="tbl-card">
+                    <div class="tbl-card-header">
+                        <span><i class="bi bi-cash-coin"></i> Pagamentos a Fornecedores</span>
+                        <span class="counter-badge" id="cnt-pag">0 registros</span>
+                    </div>
+                    <div class="tbl-card-body table-responsive">
+                        <table class="table table-hover" id="tbl-pag">
+                            <thead><tr>
+                                <th>Fornecedor</th><th>Nota Vinc.</th><th>Produto</th><th>Data</th>
+                                <th class="text-end">Compra</th><th class="text-end">Líquido</th><th>Status</th>
+                            </tr></thead><tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    async function uploadBD(input) {
+        const file = input.files[0]; if(!file) return;
+        if(!confirm(`Substituir o banco pelo arquivo "${file.name}"?\nFaça backup antes!`)) { input.value=''; return; }
+        const form = new FormData(); form.append('arquivo', file);
+        const res = await fetch('/api/banco/upload',{method:'POST',body:form});
+        const data = await res.json();
+        alert(res.ok ? data.mensagem : 'Erro: '+data.erro);
+        if(res.ok) location.reload();
+        input.value='';
+    }
+    const fmt = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
+    const dt = v => v ? new Date(v).toLocaleDateString('pt-BR') : '-';
+
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
+        document.querySelectorAll('.tab-section').forEach(s => s.classList.toggle('active', s.id==='sec-'+tab));
+        // Atualizar sidebar
+        document.querySelectorAll('.sidebar-nav .sidebar-link').forEach(a => {
+            if(a.getAttribute('href')?.includes('#')) {
+                a.classList.toggle('active', a.getAttribute('href').endsWith('#'+tab));
+            }
+        });
+    }
+
+    function filtrar() {
+        const q = document.getElementById('busca').value.toLowerCase();
+        document.querySelectorAll('.tab-section.active tbody tr').forEach(tr => {
+            tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+        });
+    }
+    document.getElementById('busca').addEventListener('input', filtrar);
+
+    async function load() {
+        const [prefs, forns, notas, pags] = await Promise.all([
+            fetch('/api/prefeituras').then(r=>r.json()),
+            fetch('/api/fornecedores').then(r=>r.json()),
+            fetch('/api/notas').then(r=>r.json()),
+            fetch('/api/pagamentos').then(r=>r.json()),
+        ]);
+
+        document.getElementById('cnt-pref').textContent = prefs.length+' registros';
+        document.querySelector('#tbl-pref tbody').innerHTML = prefs.map(p=>`
+            <tr><td class="fw-semibold">${p.prefeitura||'-'}</td><td>${p.cidade||'-'}</td><td class="text-end">${p.total_notas}</td>
+            <td class="text-end">${fmt(p.valor_total_contratos)}</td><td class="text-end">${fmt(p.valor_recebido)}</td>
+            <td class="text-end">${fmt(p.valor_a_receber)}</td><td class="text-end valor-negativo">${fmt(p.total_custos)}</td>
+            <td class="text-end fw-bold ${p.resultado_liquido>=0?'valor-positivo':'valor-negativo'}">${fmt(p.resultado_liquido)}</td></tr>`).join('');
+
+        document.getElementById('cnt-forn').textContent = forns.length+' registros';
+        document.querySelector('#tbl-forn tbody').innerHTML = forns.map(f=>`
+            <tr><td class="fw-semibold">${f.fornecedor}</td><td class="text-end">${f.total_pagamentos}</td>
+            <td class="text-end">${fmt(f.total_bruto)}</td><td class="text-end valor-negativo">${fmt(f.total_descontos)}</td>
+            <td class="text-end">${fmt(f.total_liquido)}</td><td class="text-end fw-bold">${fmt(f.total_a_pagar)}</td></tr>`).join('');
+
+        document.getElementById('cnt-notas').textContent = notas.length+' registros';
+        document.querySelector('#tbl-notas tbody').innerHTML = notas.map(n=>`
+            <tr><td class="fw-semibold">${n.numero_nota}</td><td>${n.cliente_nome}</td><td>${dt(n.data_emissao)}</td>
+            <td class="text-end">${fmt(n.valor_total)}</td><td class="text-end valor-negativo">${fmt(n.total_custos)}</td>
+            <td class="text-end fw-bold ${n.valor_liquido_nota>=0?'valor-positivo':'valor-negativo'}">${fmt(n.valor_liquido_nota)}</td>
+            <td><span class="badge-status badge-${n.status}">${n.status}</span></td></tr>`).join('');
+
+        document.getElementById('cnt-pag').textContent = pags.length+' registros';
+        document.querySelector('#tbl-pag tbody').innerHTML = pags.map(p=>`
+            <tr><td class="fw-semibold">${p.fornecedor_nome}</td><td>${p.nota_vinculada||'-'}</td><td>${p.produto_descricao||'-'}</td>
+            <td>${dt(p.data_emissao)}</td><td class="text-end">${fmt(p.valor_compra)}</td>
+            <td class="text-end">${fmt(p.valor_liquido)}</td>
+            <td><span class="badge-status badge-${p.status}">${p.status}</span></td></tr>`).join('');
+
+        // Check hash
+        const hash = location.hash.replace('#','');
+        if(hash && ['prefeituras','fornecedores','notas','pagamentos'].includes(hash)) switchTab(hash);
+    }
+    load();
+    </script>
+</body>
+</html>

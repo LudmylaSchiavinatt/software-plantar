@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLANTAR - Cadastros</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        :root { --sidebar-w:260px; --primary:#2e7d32; --bg:#f5f6fa; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:var(--bg); }
+
+        .sidebar {
+            position:fixed; top:0; left:0; width:var(--sidebar-w); height:100vh;
+            background:linear-gradient(180deg,#1a2332 0%,#0f1923 100%);
+            color:#fff; z-index:100; display:flex; flex-direction:column;
+            box-shadow:4px 0 20px rgba(0,0,0,.15);
+        }
+        .sidebar-brand { padding:24px 20px; border-bottom:1px solid rgba(255,255,255,.06); font-size:1.2rem; font-weight:800; }
+        .sidebar-brand i { color:#4caf50; margin-right:6px; }
+        .sidebar-nav { flex:1; padding:16px 0; overflow-y:auto; }
+        .sidebar-section { padding:6px 20px; font-size:.7rem; text-transform:uppercase; letter-spacing:2px; color:rgba(255,255,255,.3); margin-top:16px; }
+        .sidebar-link {
+            display:flex; align-items:center; gap:12px; padding:11px 20px;
+            color:rgba(255,255,255,.6); text-decoration:none; font-size:.92rem;
+            transition:all .2s; border-left:3px solid transparent;
+        }
+        .sidebar-link:hover { color:#fff; background:rgba(255,255,255,.05); }
+        .sidebar-link.active { color:#fff; background:rgba(76,175,80,.12); border-left-color:#4caf50; font-weight:600; }
+        .sidebar-link i { font-size:1.1rem; width:22px; text-align:center; }
+        .sidebar-footer { padding:16px 20px; border-top:1px solid rgba(255,255,255,.06); font-size:.78rem; color:rgba(255,255,255,.25); }
+
+        .main { margin-left:var(--sidebar-w); min-height:100vh; }
+        .topbar {
+            background:#fff; padding:16px 28px; display:flex; align-items:center; justify-content:space-between;
+            box-shadow:0 1px 4px rgba(0,0,0,.06); position:sticky; top:0; z-index:50;
+        }
+        .topbar h1 { font-size:1.25rem; font-weight:700; color:#1a2332; margin:0; }
+        .page-content { padding:28px; }
+
+        /* Form cards */
+        .form-card { background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.05); margin-bottom:24px; overflow:hidden; }
+        .form-card-header { padding:18px 24px; font-weight:700; font-size:1rem; border-bottom:1px solid #f0f0f0; display:flex; align-items:center; gap:10px; }
+        .form-card-header.green { background:linear-gradient(135deg,#2e7d32,#43a047); color:#fff; }
+        .form-card-header.blue { background:linear-gradient(135deg,#1565c0,#1e88e5); color:#fff; }
+        .form-card-body { padding:24px; }
+
+        .desconto-group { background:#f8f9fa; border-radius:10px; padding:16px; margin-top:12px; }
+        .desconto-group label { font-size:.82rem; margin-bottom:2px; color:#555; }
+        .desconto-group input { font-size:.85rem; }
+        .resumo-custos { background:#e8f5e9; border-radius:10px; padding:18px; margin-top:16px; }
+        .valor-negativo { color:#c62828; }
+        .valor-positivo { color:#2e7d32; }
+
+        .toast-container { position:fixed; bottom:20px; right:20px; z-index:9999; }
+
+        @media(max-width:768px) { .sidebar{width:0;overflow:hidden;} .main{margin-left:0;} }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand"><i class="bi bi-flower2" style="color:#4caf50"></i> PLANTAR</div>
+        <nav class="sidebar-nav">
+            <div class="sidebar-section">Principal</div>
+            <a href="/" class="sidebar-link"><i class="bi bi-house"></i> Landing Page</a>
+            <div class="sidebar-section">Painel</div>
+            <a href="/painel/graficos" class="sidebar-link"><i class="bi bi-bar-chart-line"></i> Gráficos</a>
+            <a href="/painel/tabelas" class="sidebar-link"><i class="bi bi-table"></i> Tabelas</a>
+            <a href="/painel/cadastros" class="sidebar-link active"><i class="bi bi-plus-circle"></i> Cadastros</a>
+            <a href="/painel/visualizador" class="sidebar-link"><i class="bi bi-grid-3x3"></i> Visualizador BD</a>
+            <div class="sidebar-section">Dados</div>
+            <a href="/painel/tabelas#prefeituras" class="sidebar-link"><i class="bi bi-building"></i> Prefeituras</a>
+            <a href="/painel/tabelas#fornecedores" class="sidebar-link"><i class="bi bi-truck"></i> Fornecedores</a>
+            <a href="/painel/tabelas#notas" class="sidebar-link"><i class="bi bi-receipt"></i> Notas Fiscais</a>
+            <a href="/painel/tabelas#pagamentos" class="sidebar-link"><i class="bi bi-cash-coin"></i> Pagamentos</a>
+            <div class="sidebar-section">Ferramentas</div>
+            <a href="/api/banco/excel" class="sidebar-link"><i class="bi bi-file-earmark-excel"></i> Exportar Excel</a>
+            <a href="/api/banco/download" class="sidebar-link"><i class="bi bi-download"></i> Baixar BD</a>
+            <label class="sidebar-link" style="cursor:pointer"><i class="bi bi-upload"></i> Enviar BD<input type="file" accept=".db,.sqlite,.sqlite3" onchange="uploadBD(this)" style="display:none"></label>
+        </nav>
+        <div class="sidebar-footer">
+            <div style="font-size:.65rem;color:rgba(255,255,255,.35);line-height:1.5">
+                <i class="bi bi-mortarboard-fill" style="color:#c62828"></i> UFSCar &nbsp;
+                <i class="bi bi-flower1" style="color:#4caf50"></i> CeMECA &nbsp;
+                <i class="bi bi-truck" style="color:#ff9800"></i> DeepTech Kokue<br>
+                Apoio: MDA - Programa Mais Gestão
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main">
+        <div class="topbar">
+            <div>
+                <h1 style="margin:0"><i class="bi bi-plus-circle"></i> Cadastros</h1>
+                <small style="color:#888;font-size:.72rem">PLANTAR - Planilha Coletiva para a Administração de Contratos da Agricultura Familiar</small>
+            </div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0" style="font-size:.85rem"><li class="breadcrumb-item"><a href="/">Início</a></li><li class="breadcrumb-item active">Cadastros</li></ol>
+            </nav>
+        </div>
+
+        <div class="page-content">
+            <!-- ======== FORMULÁRIO NOTA FISCAL ======== -->
+            <div class="form-card">
+                <div class="form-card-header green"><i class="bi bi-receipt"></i> Cadastrar Nota Fiscal</div>
+                <div class="form-card-body">
+                    <form id="formNota">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Nº Nota *</label>
+                                <input type="text" class="form-control" id="nota-numero" required placeholder="Ex: NF-001">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Data Emissão *</label>
+                                <input type="date" class="form-control" id="nota-data" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Cliente (Prefeitura) *</label>
+                                <select class="form-select" id="nota-cliente" required>
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Valor Total (R$) *</label>
+                                <input type="number" step="0.01" class="form-control" id="nota-valor" required placeholder="0,00">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Peso Líquido (kg)</label>
+                                <input type="number" step="0.01" class="form-control" id="nota-peso" value="0">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Qtd Caixas</label>
+                                <input type="number" class="form-control" id="nota-caixas" value="0">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Valor Frete (R$)</label>
+                                <input type="number" step="0.01" class="form-control" id="nota-frete" value="0">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Prev. Pagamento</label>
+                                <input type="date" class="form-control" id="nota-previsao">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Data Pagamento</label>
+                                <input type="date" class="form-control" id="nota-pagamento">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="nota-status">
+                                    <option value="emitida">Emitida</option>
+                                    <option value="pendente">Pendente</option>
+                                    <option value="paga">Paga</option>
+                                    <option value="cancelada">Cancelada</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Observações</label>
+                                <textarea class="form-control" id="nota-obs" rows="2" placeholder="Opcional..."></textarea>
+                            </div>
+                            <div class="col-12 text-end">
+                                <button type="button" class="btn btn-secondary me-2" onclick="document.getElementById('formNota').reset()">Limpar</button>
+                                <button type="button" class="btn btn-success btn-lg" onclick="salvarNota()"><i class="bi bi-check-lg"></i> Salvar Nota</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ======== FORMULÁRIO CUSTO / DESCONTO ======== -->
+            <div class="form-card">
+                <div class="form-card-header blue"><i class="bi bi-calculator"></i> Cadastrar Custo / Desconto</div>
+                <div class="form-card-body">
+                    <form id="formCusto">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Nota Fiscal vinculada *</label>
+                                <select class="form-select" id="custo-nota" required>
+                                    <option value="">Selecione a nota...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Fornecedor *</label>
+                                <select class="form-select" id="custo-fornecedor" required>
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label fw-semibold">Data *</label>
+                                <input type="date" class="form-control" id="custo-data" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Valor Compra (R$) *</label>
+                                <input type="number" step="0.01" class="form-control" id="custo-valor-compra" required placeholder="0,00"
+                                       oninput="calcularDescontosAuto()">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Nº NF Fornecedor</label>
+                                <input type="text" class="form-control" id="custo-nf-forn">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Produto / Descrição</label>
+                                <input type="text" class="form-control" id="custo-produto">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Peso Líq. (kg)</label>
+                                <input type="number" step="0.01" class="form-control" id="custo-peso" value="0">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="custo-status">
+                                    <option value="pendente">Pendente</option>
+                                    <option value="pago">Pago</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="button" class="btn btn-outline-primary w-100" onclick="calcularDescontosAuto()">
+                                    <i class="bi bi-calculator"></i> Calc. Auto
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Descontos -->
+                        <div class="desconto-group">
+                            <h6 class="mb-3 text-muted"><i class="bi bi-dash-circle"></i> Descontos</h6>
+                            <div class="row g-2">
+                                <div class="col-lg-2 col-md-3 col-6"><label>Funrural 1,5%</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-funrural" value="0"></div>
+                                <div class="col-lg-2 col-md-3 col-6"><label>Taxa Coop 15,5%</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-taxa-coop" value="0"></div>
+                                <div class="col-lg-2 col-md-3 col-6"><label>Desc. AIPRO</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-desconto-aipro" value="0"></div>
+                                <div class="col-lg-2 col-md-3 col-6"><label>Pg Cx Entrega</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-caixa-entrega" value="0"></div>
+                                <div class="col-lg-2 col-md-3 col-6"><label>Pg Frete Coop</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-frete-coop" value="0"></div>
+                                <div class="col-lg-2 col-md-3 col-6"><label>Pg Cx Papelão</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-caixa-papelao" value="0"></div>
+                                <div class="col-lg-2 col-md-3 col-6"><label>Frete COOAIPRO</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-frete-cooaipro" value="0"></div>
+                                <div class="col-lg-2 col-md-3 col-6"><label>Pg Extra PAA</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-extra-paa" value="0"></div>
+                                <div class="col-lg-2 col-md-3 col-6"><label>Pg Frete Kits Mogi</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-frete-kits-mogi" value="0"></div>
+                                <div class="col-lg-2 col-md-3 col-6"><label>Pg Ref Uso HR</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-ref-uso-hr" value="0"></div>
+                                <div class="col-lg-2 col-md-3 col-6"><label>Pg Ref Uso Ford</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-ref-uso-ford" value="0"></div>
+                                <div class="col-lg-2 col-md-3 col-6"><label>Ref Frete Poá</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-ref-frete-poa" value="0"></div>
+                                <div class="col-lg-2 col-md-3 col-6"><label>Pg Afrânio</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-afranio" value="0"></div>
+                                <div class="col-lg-2 col-md-3 col-6"><label>Pg Frete Mogi</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-frete-mogi" value="0"></div>
+                                <div class="col-lg-2 col-md-3 col-6"><label>Vlr Combustível</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-vlr-combustivel" value="0"></div>
+                                <div class="col-lg-2 col-md-3 col-6"><label>Frete SJC</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-frete-sjc" value="0"></div>
+                                <div class="col-lg-2 col-md-3 col-6"><label>Pg Câmara Fria</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-camara-fria" value="0"></div>
+                                <div class="col-lg-2 col-md-3 col-6"><label>Pg Doação Prod.</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-doacao" value="0"></div>
+                                <div class="col-lg-2 col-md-3 col-6"><label>Pg Extra</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-extra" value="0"></div>
+                                <div class="col-lg-2 col-md-3 col-6"><label>Adiantamento</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-adiantamento" value="0"></div>
+                                <div class="col-lg-2 col-md-3 col-6"><label>Desc. Outros</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-descontos-outros" value="0"></div>
+                            </div>
+                        </div>
+
+                        <!-- Resumo -->
+                        <div class="resumo-custos">
+                            <div class="row text-center">
+                                <div class="col-md-4">
+                                    <small class="text-muted">Valor Compra</small>
+                                    <div class="fs-5 fw-bold" id="resumo-compra">R$ 0,00</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted">Total Descontos</small>
+                                    <div class="fs-5 fw-bold valor-negativo" id="resumo-descontos">- R$ 0,00</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted">Valor Líquido</small>
+                                    <div class="fs-5 fw-bold valor-positivo" id="resumo-liquido">R$ 0,00</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 text-end">
+                            <button type="button" class="btn btn-secondary me-2" onclick="document.getElementById('formCusto').reset(); atualizarResumo();">Limpar</button>
+                            <button type="button" class="btn btn-primary btn-lg" onclick="salvarCusto()"><i class="bi bi-check-lg"></i> Salvar Custo</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-container">
+        <div class="toast align-items-center text-bg-success border-0" id="toastSucesso" role="alert">
+            <div class="d-flex">
+                <div class="toast-body" id="toastMsg">Salvo com sucesso!</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    async function uploadBD(input) {
+        const file = input.files[0]; if(!file) return;
+        if(!confirm(`Substituir o banco pelo arquivo "${file.name}"?\nFaça backup antes!`)) { input.value=''; return; }
+        const form = new FormData(); form.append('arquivo', file);
+        const res = await fetch('/api/banco/upload',{method:'POST',body:form});
+        const data = await res.json();
+        if(res.ok) { showToast(data.mensagem); setTimeout(()=>location.reload(),2000); }
+        else showToast('Erro: '+data.erro,'danger');
+        input.value='';
+    }
+    const fmt = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
+
+    function showToast(msg, tipo='success') {
+        const el = document.getElementById('toastSucesso');
+        el.className = `toast align-items-center text-bg-${tipo} border-0`;
+        document.getElementById('toastMsg').textContent = msg;
+        new bootstrap.Toast(el,{delay:3000}).show();
+    }
+
+    // Carregar dropdowns
+    async function loadDropdowns() {
+        const [clientes, notas, forns] = await Promise.all([
+            fetch('/api/clientes_lista').then(r=>r.json()),
+            fetch('/api/notas_lista').then(r=>r.json()),
+            fetch('/api/fornecedores_lista').then(r=>r.json()),
+        ]);
+
+        const selCli = document.getElementById('nota-cliente');
+        clientes.forEach(c => { selCli.innerHTML += `<option value="${c.id}">${c.nome} (${c.tipo})</option>`; });
+
+        const selNota = document.getElementById('custo-nota');
+        notas.forEach(n => { selNota.innerHTML += `<option value="${n.id}">${n.numero_nota} - ${n.cliente_nome} (${fmt(n.valor_total)})</option>`; });
+
+        const selForn = document.getElementById('custo-fornecedor');
+        forns.forEach(f => { selForn.innerHTML += `<option value="${f.id}">${f.nome}</option>`; });
+
+        document.getElementById('nota-data').value = new Date().toISOString().slice(0,10);
+        document.getElementById('custo-data').value = new Date().toISOString().slice(0,10);
+    }
+    loadDropdowns();
+
+    // Nota Fiscal
+    async function salvarNota() {
+        const body = {
+            numero_nota: document.getElementById('nota-numero').value,
+            data_emissao: document.getElementById('nota-data').value,
+            cliente_id: document.getElementById('nota-cliente').value,
+            peso_liquido: document.getElementById('nota-peso').value,
+            quantidade_cx: document.getElementById('nota-caixas').value,
+            valor_total: document.getElementById('nota-valor').value,
+            valor_frete: document.getElementById('nota-frete').value,
+            previsao_pagamento: document.getElementById('nota-previsao').value,
+            data_pagamento: document.getElementById('nota-pagamento').value,
+            status: document.getElementById('nota-status').value,
+            observacoes: document.getElementById('nota-obs').value,
+        };
+        if(!body.numero_nota||!body.data_emissao||!body.cliente_id||!body.valor_total)
+            return showToast('Preencha: Nº, Data, Cliente e Valor','danger');
+
+        const res = await fetch('/api/notas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+        const data = await res.json();
+        if(res.ok) {
+            showToast(data.mensagem);
+            document.getElementById('formNota').reset();
+            document.getElementById('nota-data').value = new Date().toISOString().slice(0,10);
+            loadDropdowns();
+        } else showToast('Erro: '+data.erro,'danger');
+    }
+
+    // Custo
+    function calcularDescontosAuto() {
+        const vc = parseFloat(document.getElementById('custo-valor-compra').value)||0;
+        document.getElementById('custo-funrural').value = (vc * 0.015).toFixed(2);
+        document.getElementById('custo-taxa-coop').value = (vc * 0.155).toFixed(2);
+        atualizarResumo();
+    }
+
+    function atualizarResumo() {
+        const vc = parseFloat(document.getElementById('custo-valor-compra').value)||0;
+        let td = 0;
+        document.querySelectorAll('.desconto-field').forEach(el => { td += parseFloat(el.value)||0; });
+        document.getElementById('resumo-compra').textContent = fmt(vc);
+        document.getElementById('resumo-descontos').textContent = '- '+fmt(td);
+        document.getElementById('resumo-liquido').textContent = fmt(vc - td);
+    }
+    document.addEventListener('input', e => { if(e.target.classList.contains('desconto-field')) atualizarResumo(); });
+
+    async function salvarCusto() {
+        const body = {
+            nota_id: document.getElementById('custo-nota').value,
+            fornecedor_id: document.getElementById('custo-fornecedor').value,
+            data_emissao: document.getElementById('custo-data').value,
+            numero_nota_fornecedor: document.getElementById('custo-nf-forn').value,
+            produto_descricao: document.getElementById('custo-produto').value,
+            peso_liquido: document.getElementById('custo-peso').value,
+            valor_compra: document.getElementById('custo-valor-compra').value,
+            status: document.getElementById('custo-status').value,
+            funrural: document.getElementById('custo-funrural').value,
+            taxa_cooperativa: document.getElementById('custo-taxa-coop').value,
+            desconto_aipro: document.getElementById('custo-desconto-aipro').value,
+            pg_caixa_entrega: document.getElementById('custo-pg-caixa-entrega').value,
+            pg_frete_coop: document.getElementById('custo-pg-frete-coop').value,
+            pg_caixa_papelao: document.getElementById('custo-pg-caixa-papelao').value,
+            frete_cooaipro: document.getElementById('custo-frete-cooaipro').value,
+            pg_extra_paa: document.getElementById('custo-pg-extra-paa').value,
+            pg_frete_kits_mogi: document.getElementById('custo-pg-frete-kits-mogi').value,
+            pg_ref_uso_hr: document.getElementById('custo-pg-ref-uso-hr').value,
+            pg_ref_uso_ford: document.getElementById('custo-pg-ref-uso-ford').value,
+            ref_frete_entrega_poa: document.getElementById('custo-ref-frete-poa').value,
+            pg_afranio: document.getElementById('custo-pg-afranio').value,
+            pg_frete_mogi: document.getElementById('custo-pg-frete-mogi').value,
+            vlr_pago_combustivel: document.getElementById('custo-vlr-combustivel').value,
+            frete_entrega_sao_jose: document.getElementById('custo-frete-sjc').value,
+            pg_uso_camara_fria: document.getElementById('custo-pg-camara-fria').value,
+            pg_doacao_produtor: document.getElementById('custo-pg-doacao').value,
+            pg_extra: document.getElementById('custo-pg-extra').value,
+            adiantamento: document.getElementById('custo-adiantamento').value,
+            descontos_outros: document.getElementById('custo-descontos-outros').value,
+        };
+        if(!body.nota_id||!body.fornecedor_id||!body.data_emissao||!body.valor_compra)
+            return showToast('Preencha: Nota, Fornecedor, Data e Valor','danger');
+
+        const res = await fetch('/api/custos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+        const data = await res.json();
+        if(res.ok) {
+            showToast(data.mensagem+' | Líquido: '+fmt(data.valor_liquido));
+            document.getElementById('formCusto').reset();
+            document.getElementById('custo-data').value = new Date().toISOString().slice(0,10);
+            atualizarResumo();
+            loadDropdowns();
+        } else showToast('Erro: '+data.erro,'danger');
+    }
+    </script>
+</body>
+</html>

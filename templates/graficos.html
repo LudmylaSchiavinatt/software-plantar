@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLANTAR - Gráficos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --sidebar-w:260px; --primary:#2e7d32; --primary-dark:#1b5e20; --secondary:#1565c0; --bg:#f5f6fa; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:var(--bg); }
+
+        /* Sidebar */
+        .sidebar {
+            position:fixed; top:0; left:0; width:var(--sidebar-w); height:100vh;
+            background:linear-gradient(180deg,#1a2332 0%,#0f1923 100%);
+            color:#fff; z-index:100; display:flex; flex-direction:column;
+            box-shadow:4px 0 20px rgba(0,0,0,.15);
+        }
+        .sidebar-brand {
+            padding:24px 20px; border-bottom:1px solid rgba(255,255,255,.06);
+            font-size:1.2rem; font-weight:800; letter-spacing:-.5px;
+        }
+        .sidebar-brand i { color:#4caf50; margin-right:6px; }
+        .sidebar-nav { flex:1; padding:16px 0; overflow-y:auto; }
+        .sidebar-section { padding:6px 20px; font-size:.7rem; text-transform:uppercase; letter-spacing:2px; color:rgba(255,255,255,.3); margin-top:16px; }
+        .sidebar-link {
+            display:flex; align-items:center; gap:12px; padding:11px 20px;
+            color:rgba(255,255,255,.6); text-decoration:none; font-size:.92rem;
+            transition:all .2s; border-left:3px solid transparent;
+        }
+        .sidebar-link:hover { color:#fff; background:rgba(255,255,255,.05); }
+        .sidebar-link.active {
+            color:#fff; background:rgba(76,175,80,.12);
+            border-left-color:#4caf50; font-weight:600;
+        }
+        .sidebar-link i { font-size:1.1rem; width:22px; text-align:center; }
+        .sidebar-footer { padding:16px 20px; border-top:1px solid rgba(255,255,255,.06); font-size:.78rem; color:rgba(255,255,255,.25); }
+
+        /* Main */
+        .main { margin-left:var(--sidebar-w); min-height:100vh; }
+        .topbar {
+            background:#fff; padding:16px 28px; display:flex; align-items:center; justify-content:space-between;
+            box-shadow:0 1px 4px rgba(0,0,0,.06); position:sticky; top:0; z-index:50;
+        }
+        .topbar h1 { font-size:1.25rem; font-weight:700; color:#1a2332; margin:0; }
+        .topbar .breadcrumb { margin:0; font-size:.85rem; }
+
+        .page-content { padding:28px; }
+
+        /* KPI row */
+        .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px; }
+        .kpi-box {
+            background:#fff; border-radius:12px; padding:20px; text-align:center;
+            box-shadow:0 2px 8px rgba(0,0,0,.05); border-bottom:3px solid transparent;
+        }
+        .kpi-box i { font-size:1.6rem; margin-bottom:6px; display:block; }
+        .kpi-box .kv { font-size:1.4rem; font-weight:800; }
+        .kpi-box .kl { font-size:.72rem; text-transform:uppercase; letter-spacing:1px; color:#888; margin-top:2px; }
+        .kpi-green { border-bottom-color:#4caf50; } .kpi-green i,.kpi-green .kv { color:#2e7d32; }
+        .kpi-orange { border-bottom-color:#ff9800; } .kpi-orange i,.kpi-orange .kv { color:#ef6c00; }
+        .kpi-blue { border-bottom-color:#42a5f5; } .kpi-blue i,.kpi-blue .kv { color:#1565c0; }
+        .kpi-purple { border-bottom-color:#ab47bc; } .kpi-purple i,.kpi-purple .kv { color:#6a1b9a; }
+
+        /* Cards */
+        .chart-card { background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.05); margin-bottom:24px; overflow:hidden; }
+        .chart-card-header { padding:16px 20px; font-weight:700; font-size:.95rem; border-bottom:1px solid #f0f0f0; display:flex; align-items:center; gap:8px; color:#1a2332; }
+        .chart-card-body { padding:20px; }
+
+        @media(max-width:768px) {
+            .sidebar { width:0; overflow:hidden; }
+            .main { margin-left:0; }
+            .kpi-row { grid-template-columns:repeat(2,1fr); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand"><i class="bi bi-flower2" style="color:#4caf50"></i> PLANTAR</div>
+        <nav class="sidebar-nav">
+            <div class="sidebar-section">Principal</div>
+            <a href="/" class="sidebar-link"><i class="bi bi-house"></i> Landing Page</a>
+            <div class="sidebar-section">Painel</div>
+            <a href="/painel/graficos" class="sidebar-link active"><i class="bi bi-bar-chart-line"></i> Gráficos</a>
+            <a href="/painel/tabelas" class="sidebar-link"><i class="bi bi-table"></i> Tabelas</a>
+            <a href="/painel/cadastros" class="sidebar-link"><i class="bi bi-plus-circle"></i> Cadastros</a>
+            <a href="/painel/visualizador" class="sidebar-link"><i class="bi bi-grid-3x3"></i> Visualizador BD</a>
+            <div class="sidebar-section">Dados</div>
+            <a href="/painel/tabelas#prefeituras" class="sidebar-link"><i class="bi bi-building"></i> Prefeituras</a>
+            <a href="/painel/tabelas#fornecedores" class="sidebar-link"><i class="bi bi-truck"></i> Fornecedores</a>
+            <a href="/painel/tabelas#notas" class="sidebar-link"><i class="bi bi-receipt"></i> Notas Fiscais</a>
+            <a href="/painel/tabelas#pagamentos" class="sidebar-link"><i class="bi bi-cash-coin"></i> Pagamentos</a>
+            <div class="sidebar-section">Ferramentas</div>
+            <a href="/api/banco/excel" class="sidebar-link"><i class="bi bi-file-earmark-excel"></i> Exportar Excel</a>
+            <a href="/api/banco/download" class="sidebar-link"><i class="bi bi-download"></i> Baixar BD</a>
+            <label class="sidebar-link" style="cursor:pointer"><i class="bi bi-upload"></i> Enviar BD<input type="file" accept=".db,.sqlite,.sqlite3" onchange="uploadBD(this)" style="display:none"></label>
+        </nav>
+        <div class="sidebar-footer">
+            <div style="font-size:.65rem;color:rgba(255,255,255,.35);line-height:1.5">
+                <i class="bi bi-mortarboard-fill" style="color:#c62828"></i> UFSCar &nbsp;
+                <i class="bi bi-flower1" style="color:#4caf50"></i> CeMECA &nbsp;
+                <i class="bi bi-truck" style="color:#ff9800"></i> DeepTech Kokue<br>
+                Apoio: MDA - Programa Mais Gestão
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main">
+        <div class="topbar">
+            <div>
+                <h1><i class="bi bi-bar-chart-line"></i> Gráficos</h1>
+                <small style="color:#888;font-size:.72rem">PLANTAR - Planilha Coletiva para a Administração de Contratos da Agricultura Familiar</small>
+            </div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb"><li class="breadcrumb-item"><a href="/">Início</a></li><li class="breadcrumb-item active">Gráficos</li></ol>
+            </nav>
+        </div>
+
+        <div class="page-content">
+            <!-- KPIs -->
+            <div class="kpi-row">
+                <div class="kpi-box kpi-green"><i class="bi bi-cash-stack"></i><div class="kv" id="kpi-receber">--</div><div class="kl">A Receber</div></div>
+                <div class="kpi-box kpi-orange"><i class="bi bi-arrow-up-circle"></i><div class="kv" id="kpi-pagar">--</div><div class="kl">A Pagar</div></div>
+                <div class="kpi-box kpi-blue"><i class="bi bi-file-text"></i><div class="kv" id="kpi-notas">--</div><div class="kl">Notas Pend.</div></div>
+                <div class="kpi-box kpi-purple"><i class="bi bi-people"></i><div class="kv" id="kpi-pag">--</div><div class="kl">Pag. Pend.</div></div>
+            </div>
+
+            <!-- Gráficos -->
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="chart-card">
+                        <div class="chart-card-header"><i class="bi bi-bar-chart"></i> Resultado por Prefeitura</div>
+                        <div class="chart-card-body"><canvas id="chart-prefeituras"></canvas></div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="chart-card">
+                        <div class="chart-card-header"><i class="bi bi-pie-chart"></i> Receber vs Pagar</div>
+                        <div class="chart-card-body"><canvas id="chart-status"></canvas></div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="chart-card">
+                        <div class="chart-card-header"><i class="bi bi-pie-chart-fill"></i> Custos por Prefeitura</div>
+                        <div class="chart-card-body"><canvas id="chart-custos-pie"></canvas></div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="chart-card">
+                        <div class="chart-card-header"><i class="bi bi-bar-chart-steps"></i> Top 10 Fornecedores</div>
+                        <div class="chart-card-body"><canvas id="chart-fornecedores"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    async function uploadBD(input) {
+        const file = input.files[0]; if(!file) return;
+        if(!confirm(`Substituir o banco pelo arquivo "${file.name}"?\nFaça backup antes!`)) { input.value=''; return; }
+        const form = new FormData(); form.append('arquivo', file);
+        const res = await fetch('/api/banco/upload',{method:'POST',body:form});
+        const data = await res.json();
+        alert(res.ok ? data.mensagem : 'Erro: '+data.erro);
+        if(res.ok) location.reload();
+        input.value='';
+    }
+    const fmt = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
+    const CORES = ['#2e7d32','#1565c0','#ff8f00','#c62828','#6a1b9a','#00838f','#ef6c00','#283593','#00695c','#4e342e','#37474f','#880e4f'];
+
+    async function load() {
+        const [resumo, prefs, forns] = await Promise.all([
+            fetch('/api/resumo').then(r=>r.json()),
+            fetch('/api/prefeituras').then(r=>r.json()),
+            fetch('/api/fornecedores').then(r=>r.json()),
+        ]);
+
+        document.getElementById('kpi-receber').textContent = fmt(resumo.totais.valor_a_receber);
+        document.getElementById('kpi-pagar').textContent = fmt(resumo.totais.valor_a_pagar);
+        document.getElementById('kpi-notas').textContent = resumo.totais.notas_pendentes;
+        document.getElementById('kpi-pag').textContent = resumo.totais.pagamentos_pendentes;
+
+        // Bar: resultado por prefeitura
+        new Chart(document.getElementById('chart-prefeituras'),{
+            type:'bar',
+            data:{labels:prefs.map(p=>(p.prefeitura||'').substring(0,20)),
+                datasets:[
+                    {label:'Contratos',data:prefs.map(p=>p.valor_total_contratos||0),backgroundColor:'#2e7d32'},
+                    {label:'Custos',data:prefs.map(p=>p.total_custos||0),backgroundColor:'#ff8f00'},
+                    {label:'Resultado',data:prefs.map(p=>p.resultado_liquido||0),backgroundColor:'#1565c0'}
+                ]},
+            options:{responsive:true,plugins:{tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt(c.raw)}`}},legend:{position:'bottom'}},scales:{y:{ticks:{callback:v=>fmt(v)}}}}
+        });
+
+        // Doughnut: receber vs pagar
+        new Chart(document.getElementById('chart-status'),{
+            type:'doughnut',
+            data:{labels:['A Receber','A Pagar'],
+                datasets:[{data:[resumo.totais.valor_a_receber,resumo.totais.valor_a_pagar],backgroundColor:['#2e7d32','#ff8f00'],borderWidth:0}]},
+            options:{responsive:true,cutout:'65%',plugins:{tooltip:{callbacks:{label:c=>`${c.label}: ${fmt(c.raw)}`}},legend:{position:'bottom'}}}
+        });
+
+        // Pie: custos por prefeitura
+        const comCustos = prefs.filter(p=>p.total_custos>0);
+        new Chart(document.getElementById('chart-custos-pie'),{
+            type:'pie',
+            data:{labels:comCustos.map(p=>(p.prefeitura||'').substring(0,20)),
+                datasets:[{data:comCustos.map(p=>p.total_custos),backgroundColor:CORES.slice(0,comCustos.length),borderWidth:0}]},
+            options:{responsive:true,plugins:{tooltip:{callbacks:{label:c=>`${c.label}: ${fmt(c.raw)}`}},legend:{position:'bottom'}}}
+        });
+
+        // Horizontal bar: fornecedores
+        const top10 = forns.slice(0,10);
+        new Chart(document.getElementById('chart-fornecedores'),{
+            type:'bar',
+            data:{labels:top10.map(f=>(f.fornecedor||'').substring(0,22)),
+                datasets:[
+                    {label:'Bruto',data:top10.map(f=>f.total_bruto||0),backgroundColor:'#1565c0'},
+                    {label:'Líquido',data:top10.map(f=>f.total_liquido||0),backgroundColor:'#2e7d32'}
+                ]},
+            options:{indexAxis:'y',responsive:true,plugins:{tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt(c.raw)}`}},legend:{position:'bottom'}},scales:{x:{ticks:{callback:v=>fmt(v)}}}}
+        });
+    }
+    load();
+    </script>
+</body>
+</html>

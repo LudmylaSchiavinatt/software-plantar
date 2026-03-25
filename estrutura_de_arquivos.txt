@@ -1,0 +1,40 @@
+plantar-app/
+│
+├── schema.sql                 # Schema do banco de dados
+├── processador_coaipro.py     # Processador de planilhas Excel
+├── seed_loader.py             # Migração de tabelas para banco seed
+├── app.py                     # Backend Flask
+├── build_exe.py               # Builder: executável com Fernet encryption
+├── coaipro.db                 # Banco SQLite (gerado)
+│
+├── dados_seed/                # Tabelas iniciais (CSV ou Excel) para banco seed
+│   ├── clientes.csv
+│   ├── fornecedores.csv
+│   ├── produtos.csv
+│   ├── notas_fiscais.csv
+│   └── pagamentos_fornecedores.csv
+│
+├── planilhas_modelo/          # Planilhas modelo (1ª execução: concilia e migra)
+│   └── *.xlsx
+│
+├── templates/
+│   ├── landing.html           # Landing page (página inicial)
+│   ├── graficos.html          # Painel de gráficos (sidebar)
+│   ├── tabelas.html           # Painel de tabelas (sidebar)
+│   ├── cadastros.html         # Formulários de cadastro (sidebar)
+│   ├── visualizador.html      # Visualizador BD estilo Excel (sidebar)
+│   └── dashboard.html         # Dashboard legado
+│
+├── tests/                     # Testes automatizados (pytest)
+│   ├── conftest.py
+│   ├── test_schema.py
+│   ├── test_seed.py
+│   ├── test_api.py
+│   ├── test_views.py
+│   └── relatorio_testes.html
+│
+├── dist/                      # Saída do build (gerado)
+│   ├── plantar.exe            # Executável standalone
+│   └── plantar.key            # Chave Fernet
+│
+└── requirements.txt           # Dependências Python

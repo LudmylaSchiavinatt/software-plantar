@@ -1,0 +1,764 @@
+<!-- templates/dashboard.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLANTAR - Gestão de Contratos da Agricultura Familiar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #2e7d32;
+            --secondary-color: #1565c0;
+            --success-color: #2e7d32;
+            --warning-color: #ff8f00;
+            --danger-color: #c62828;
+        }
+        body { background-color: #f5f5f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar { background-color: var(--primary-color) !important; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .navbar-brand { color: white !important; font-weight: bold; font-size: 1.4rem; }
+        .nav-link-custom { color: rgba(255,255,255,0.85) !important; font-size: 0.95rem; }
+        .nav-link-custom:hover { color: white !important; }
+        .card { border: none; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .card-header { background-color: white; border-bottom: 2px solid #f0f0f0; font-weight: bold; padding: 15px 20px; }
+        .stat-card { text-align: center; padding: 20px; border-radius: 10px; color: white; }
+        .stat-card i { font-size: 2.5rem; margin-bottom: 10px; }
+        .stat-card .value { font-size: 1.8rem; font-weight: bold; }
+        .stat-card .label { font-size: 0.85rem; opacity: 0.9; }
+        .bg-primary-custom { background: linear-gradient(135deg, #1976d2, #1565c0); }
+        .bg-success-custom { background: linear-gradient(135deg, #2e7d32, #1b5e20); }
+        .bg-warning-custom { background: linear-gradient(135deg, #ff8f00, #ff6f00); }
+        .bg-info-custom { background: linear-gradient(135deg, #0288d1, #01579b); }
+        .bg-result-custom { background: linear-gradient(135deg, #6a1b9a, #4a148c); }
+        .table-hover tbody tr:hover { background-color: rgba(46, 125, 50, 0.05); cursor: pointer; }
+        .badge-status { padding: 5px 10px; border-radius: 20px; font-weight: normal; font-size: 0.8rem; }
+        .badge-paga, .badge-pago { background-color: #c8e6c9; color: #1b5e20; }
+        .badge-pendente, .badge-emitida { background-color: #fff3e0; color: #e65100; }
+        .badge-cancelada, .badge-cancelado { background-color: #ffebee; color: #b71c1c; }
+        .filter-section { background-color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        .btn-cadastro { border-radius: 8px; font-weight: 600; padding: 8px 20px; }
+        .modal-header-green { background-color: var(--primary-color); color: white; }
+        .modal-header-blue { background-color: var(--secondary-color); color: white; }
+        .desconto-group { background: #f8f9fa; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+        .desconto-group label { font-size: 0.82rem; margin-bottom: 2px; }
+        .desconto-group input { font-size: 0.85rem; }
+        .resumo-custos { background: #e8f5e9; border-radius: 8px; padding: 15px; }
+        .valor-negativo { color: var(--danger-color); }
+        .valor-positivo { color: var(--success-color); }
+        .clickable { cursor: pointer; }
+        .clickable:hover { text-decoration: underline; color: var(--secondary-color); }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand"><i class="bi bi-flower2"></i> PLANTAR - Gestão de Contratos</span>
+            <div class="d-flex align-items-center gap-3">
+                <a href="/" class="nav-link-custom" style="border-bottom:2px solid white">Dashboard</a>
+                <a href="/graficos" class="nav-link-custom">Gráficos</a>
+                <a href="/tabelas" class="nav-link-custom">Tabelas</a>
+                <span class="text-white mx-2">|</span>
+                <button class="btn btn-outline-light btn-sm btn-cadastro" onclick="abrirModalNota()">
+                    <i class="bi bi-plus-circle"></i> Nova Nota
+                </button>
+                <button class="btn btn-outline-light btn-sm btn-cadastro" onclick="abrirModalCusto()">
+                    <i class="bi bi-calculator"></i> Novo Custo
+                </button>
+                <span class="text-white"><i class="bi bi-calendar"></i> <span id="current-date"></span></span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3 col-6">
+                <div class="stat-card bg-success-custom">
+                    <i class="bi bi-cash-stack"></i>
+                    <div class="value" id="total-receber">R$ 0</div>
+                    <div class="label">A RECEBER</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-card bg-warning-custom">
+                    <i class="bi bi-arrow-up-circle"></i>
+                    <div class="value" id="total-pagar">R$ 0</div>
+                    <div class="label">A PAGAR (CUSTOS)</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-card bg-primary-custom">
+                    <i class="bi bi-file-text"></i>
+                    <div class="value" id="notas-pendentes">0</div>
+                    <div class="label">NOTAS PENDENTES</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-card bg-info-custom">
+                    <i class="bi bi-people"></i>
+                    <div class="value" id="pagamentos-pendentes">0</div>
+                    <div class="label">PAGAMENTOS PENDENTES</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-pie-chart"></i> Resultado por Prefeitura</div>
+                    <div class="card-body"><canvas id="chart-prefeituras"></canvas></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-bar-chart"></i> Status Financeiro</div>
+                    <div class="card-body"><canvas id="chart-status"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela Prefeituras -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-building"></i> Resultado por Prefeitura (Receber - Custos)</div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="tabela-prefeituras">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Prefeitura</th>
+                                        <th class="text-end">Total Contratos</th>
+                                        <th class="text-end">Recebido</th>
+                                        <th class="text-end">A Receber</th>
+                                        <th class="text-end">Custos</th>
+                                        <th class="text-end">Resultado Líquido</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fornecedores -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-truck"></i> Top Fornecedores</div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="tabela-fornecedores">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Fornecedor</th>
+                                        <th class="text-end">Total Bruto</th>
+                                        <th class="text-end">Descontos</th>
+                                        <th class="text-end">Líquido</th>
+                                        <th class="text-end">A Pagar</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notas Fiscais -->
+        <div class="row mt-2">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-receipt"></i> Notas Fiscais</span>
+                        <button class="btn btn-success btn-sm" onclick="abrirModalNota()"><i class="bi bi-plus"></i> Nova Nota</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="tabela-notas">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Nº Nota</th>
+                                        <th>Cliente</th>
+                                        <th class="text-end">Valor NF</th>
+                                        <th class="text-end">Custos</th>
+                                        <th class="text-end">Líquido</th>
+                                        <th>Status</th>
+                                        <th>Data</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- MODAL: Cadastro de Nota Fiscal -->
+    <!-- ================================================================= -->
+    <div class="modal fade" id="modalNota" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header modal-header-green">
+                    <h5 class="modal-title"><i class="bi bi-receipt"></i> Cadastrar Nota Fiscal</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formNota">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Nº Nota *</label>
+                                <input type="text" class="form-control" id="nota-numero" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Data Emissão *</label>
+                                <input type="date" class="form-control" id="nota-data" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Cliente (Prefeitura) *</label>
+                                <select class="form-select" id="nota-cliente" required>
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Peso Líquido (kg)</label>
+                                <input type="number" step="0.01" class="form-control" id="nota-peso" value="0">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Qtd Caixas</label>
+                                <input type="number" class="form-control" id="nota-caixas" value="0">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Valor Total (R$) *</label>
+                                <input type="number" step="0.01" class="form-control" id="nota-valor" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Valor Frete (R$)</label>
+                                <input type="number" step="0.01" class="form-control" id="nota-frete" value="0">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Previsão Pagamento</label>
+                                <input type="date" class="form-control" id="nota-previsao">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Data Pagamento</label>
+                                <input type="date" class="form-control" id="nota-pagamento">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="nota-status">
+                                    <option value="emitida">Emitida</option>
+                                    <option value="pendente">Pendente</option>
+                                    <option value="paga">Paga</option>
+                                    <option value="cancelada">Cancelada</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Observações</label>
+                                <textarea class="form-control" id="nota-obs" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" onclick="salvarNota()"><i class="bi bi-check-lg"></i> Salvar Nota</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- MODAL: Cadastro de Custo / Desconto -->
+    <!-- ================================================================= -->
+    <div class="modal fade" id="modalCusto" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header modal-header-blue">
+                    <h5 class="modal-title"><i class="bi bi-calculator"></i> Cadastrar Custo / Desconto</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formCusto">
+                        <!-- Dados principais -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-5">
+                                <label class="form-label">Nota Fiscal vinculada *</label>
+                                <select class="form-select" id="custo-nota" required>
+                                    <option value="">Selecione a nota...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Fornecedor *</label>
+                                <select class="form-select" id="custo-fornecedor" required>
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Data *</label>
+                                <input type="date" class="form-control" id="custo-data" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Nº NF Fornecedor</label>
+                                <input type="text" class="form-control" id="custo-nf-forn">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Produto/Descrição</label>
+                                <input type="text" class="form-control" id="custo-produto">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Peso Líq. (kg)</label>
+                                <input type="number" step="0.01" class="form-control" id="custo-peso" value="0">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Valor Compra (R$) *</label>
+                                <input type="number" step="0.01" class="form-control" id="custo-valor-compra" required
+                                       oninput="calcularDescontosAuto()">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="custo-status">
+                                    <option value="pendente">Pendente</option>
+                                    <option value="pago">Pago</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Descontos -->
+                        <h6 class="text-muted mb-2"><i class="bi bi-dash-circle"></i> Descontos</h6>
+                        <div class="desconto-group">
+                            <div class="row g-2">
+                                <div class="col-md-3">
+                                    <label>Funrural 1,5%</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-funrural" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Taxa Cooperativa 15,5%</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-taxa-coop" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Desconto AIPRO</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-desconto-aipro" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Pg Caixa Entrega</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-caixa-entrega" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Pg Frete Coop</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-frete-coop" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Pg Caixa Papelão</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-caixa-papelao" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Frete COOAIPRO</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-frete-cooaipro" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Pg Extra PAA</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-extra-paa" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Pg Frete Kits Mogi</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-frete-kits-mogi" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Pg Ref Uso HR</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-ref-uso-hr" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Pg Ref Uso Ford</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-ref-uso-ford" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Ref Frete Entrega Poá</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-ref-frete-poa" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Pg Afrânio</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-afranio" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Pg Frete Mogi</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-frete-mogi" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Vlr Pago Combustível</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-vlr-combustivel" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Frete Entrega SJC</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-frete-sjc" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Pg Uso Câmara Fria</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-camara-fria" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Pg Doação Produtor</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-doacao" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Pg Extra</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-extra" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Adiantamento</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-adiantamento" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Descontos Outros</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-descontos-outros" value="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resumo -->
+                        <div class="resumo-custos mt-3">
+                            <div class="row text-center">
+                                <div class="col-md-4">
+                                    <small class="text-muted">Valor Compra</small>
+                                    <div class="fs-5 fw-bold" id="resumo-compra">R$ 0,00</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted">Total Descontos</small>
+                                    <div class="fs-5 fw-bold valor-negativo" id="resumo-descontos">- R$ 0,00</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted">Valor Líquido</small>
+                                    <div class="fs-5 fw-bold valor-positivo" id="resumo-liquido">R$ 0,00</div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="calcularDescontosAuto()"><i class="bi bi-calculator"></i> Calcular Auto</button>
+                    <button type="button" class="btn btn-success" onclick="salvarCusto()"><i class="bi bi-check-lg"></i> Salvar Custo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- MODAL: Custos de uma Nota -->
+    <!-- ================================================================= -->
+    <div class="modal fade" id="modalCustosNota" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header modal-header-blue">
+                    <h5 class="modal-title"><i class="bi bi-list-check"></i> Custos da Nota <span id="custos-nota-titulo"></span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm" id="tabela-custos-nota">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Fornecedor</th>
+                                    <th>Produto</th>
+                                    <th class="text-end">Valor Compra</th>
+                                    <th class="text-end">Descontos</th>
+                                    <th class="text-end">Valor Líquido</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                            <tfoot class="table-light fw-bold">
+                                <tr>
+                                    <td colspan="2">TOTAL</td>
+                                    <td class="text-end" id="custos-total-compra"></td>
+                                    <td class="text-end" id="custos-total-descontos"></td>
+                                    <td class="text-end" id="custos-total-liquido"></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="btn-add-custo-nota"><i class="bi bi-plus"></i> Adicionar Custo</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    const fmt = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
+
+    document.getElementById('current-date').textContent =
+        new Date().toLocaleDateString('pt-BR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+    let chartPref = null, chartStatus = null;
+
+    // ===================== LOAD DATA =====================
+    async function loadData() {
+        try {
+            const resumo = await fetch('/api/resumo').then(r=>r.json());
+            document.getElementById('total-receber').textContent = fmt(resumo.totais.valor_a_receber);
+            document.getElementById('total-pagar').textContent = fmt(resumo.totais.valor_a_pagar);
+            document.getElementById('notas-pendentes').textContent = resumo.totais.notas_pendentes;
+            document.getElementById('pagamentos-pendentes').textContent = resumo.totais.pagamentos_pendentes;
+
+            // Prefeituras
+            const prefs = await fetch('/api/prefeituras').then(r=>r.json());
+            document.querySelector('#tabela-prefeituras tbody').innerHTML = prefs.map(p => `
+                <tr>
+                    <td>${p.prefeitura||'N/A'}</td>
+                    <td class="text-end">${fmt(p.valor_total_contratos)}</td>
+                    <td class="text-end">${fmt(p.valor_recebido)}</td>
+                    <td class="text-end">${fmt(p.valor_a_receber)}</td>
+                    <td class="text-end valor-negativo">${fmt(p.total_custos)}</td>
+                    <td class="text-end fw-bold ${p.resultado_liquido>=0?'valor-positivo':'valor-negativo'}">${fmt(p.resultado_liquido)}</td>
+                </tr>`).join('');
+
+            // Fornecedores
+            const forns = await fetch('/api/fornecedores').then(r=>r.json());
+            document.querySelector('#tabela-fornecedores tbody').innerHTML = forns.slice(0,10).map(f => `
+                <tr>
+                    <td>${f.fornecedor}</td>
+                    <td class="text-end">${fmt(f.total_bruto)}</td>
+                    <td class="text-end valor-negativo">${fmt(f.total_descontos)}</td>
+                    <td class="text-end">${fmt(f.total_liquido)}</td>
+                    <td class="text-end fw-bold">${fmt(f.total_a_pagar)}</td>
+                </tr>`).join('');
+
+            // Notas
+            const notas = await fetch('/api/notas').then(r=>r.json());
+            document.querySelector('#tabela-notas tbody').innerHTML = notas.map(n => `
+                <tr>
+                    <td><span class="clickable" onclick="verCustosNota(${n.id},'${n.numero_nota}')">${n.numero_nota}</span></td>
+                    <td>${n.cliente_nome}</td>
+                    <td class="text-end">${fmt(n.valor_total)}</td>
+                    <td class="text-end valor-negativo">${fmt(n.total_custos)}</td>
+                    <td class="text-end fw-bold ${n.valor_liquido_nota>=0?'valor-positivo':'valor-negativo'}">${fmt(n.valor_liquido_nota)}</td>
+                    <td><span class="badge-status badge-${n.status}">${n.status}</span></td>
+                    <td>${new Date(n.data_emissao).toLocaleDateString('pt-BR')}</td>
+                    <td><button class="btn btn-sm btn-outline-primary" onclick="adicionarCustoNota(${n.id})" title="Adicionar custo"><i class="bi bi-plus-circle"></i></button></td>
+                </tr>`).join('');
+
+            createCharts(prefs, resumo);
+        } catch(e) { console.error('Erro:',e); }
+    }
+
+    function createCharts(prefs, resumo) {
+        if(chartPref) chartPref.destroy();
+        if(chartStatus) chartStatus.destroy();
+
+        const ctx1 = document.getElementById('chart-prefeituras').getContext('2d');
+        chartPref = new Chart(ctx1, {
+            type:'bar',
+            data:{
+                labels: prefs.map(p=>(p.prefeitura||'').substring(0,20)),
+                datasets:[
+                    {label:'Contratos',data:prefs.map(p=>p.valor_total_contratos||0),backgroundColor:'#2e7d32'},
+                    {label:'Custos',data:prefs.map(p=>p.total_custos||0),backgroundColor:'#ff8f00'},
+                    {label:'Resultado',data:prefs.map(p=>p.resultado_liquido||0),backgroundColor:'#1565c0'}
+                ]
+            },
+            options:{responsive:true,plugins:{tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt(c.raw)}`}}},scales:{y:{ticks:{callback:v=>fmt(v)}}}}
+        });
+
+        const ctx2 = document.getElementById('chart-status').getContext('2d');
+        chartStatus = new Chart(ctx2, {
+            type:'doughnut',
+            data:{
+                labels:['A Receber','A Pagar'],
+                datasets:[{data:[resumo.totais.valor_a_receber,resumo.totais.valor_a_pagar],backgroundColor:['#2e7d32','#ff8f00']}]
+            },
+            options:{responsive:true,plugins:{tooltip:{callbacks:{label:c=>`${c.label}: ${fmt(c.raw)}`}}}}
+        });
+    }
+
+    // ===================== FORMULÁRIO NOTA =====================
+    async function abrirModalNota() {
+        const sel = document.getElementById('nota-cliente');
+        sel.innerHTML = '<option value="">Selecione...</option>';
+        const clientes = await fetch('/api/clientes_lista').then(r=>r.json());
+        clientes.forEach(c => { sel.innerHTML += `<option value="${c.id}">${c.nome} (${c.tipo})</option>`; });
+        document.getElementById('nota-data').value = new Date().toISOString().slice(0,10);
+        new bootstrap.Modal(document.getElementById('modalNota')).show();
+    }
+
+    async function salvarNota() {
+        const body = {
+            numero_nota: document.getElementById('nota-numero').value,
+            data_emissao: document.getElementById('nota-data').value,
+            cliente_id: document.getElementById('nota-cliente').value,
+            peso_liquido: document.getElementById('nota-peso').value,
+            quantidade_cx: document.getElementById('nota-caixas').value,
+            valor_total: document.getElementById('nota-valor').value,
+            valor_frete: document.getElementById('nota-frete').value,
+            previsao_pagamento: document.getElementById('nota-previsao').value,
+            data_pagamento: document.getElementById('nota-pagamento').value,
+            status: document.getElementById('nota-status').value,
+            observacoes: document.getElementById('nota-obs').value,
+        };
+        if(!body.numero_nota||!body.data_emissao||!body.cliente_id||!body.valor_total){
+            return alert('Preencha os campos obrigatórios (Nº, Data, Cliente, Valor)');
+        }
+        const res = await fetch('/api/notas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+        const data = await res.json();
+        if(res.ok){
+            alert(data.mensagem);
+            bootstrap.Modal.getInstance(document.getElementById('modalNota')).hide();
+            document.getElementById('formNota').reset();
+            loadData();
+        } else { alert('Erro: '+data.erro); }
+    }
+
+    // ===================== FORMULÁRIO CUSTO =====================
+    async function abrirModalCusto(notaId) {
+        // Notas dropdown
+        const selNota = document.getElementById('custo-nota');
+        selNota.innerHTML = '<option value="">Selecione a nota...</option>';
+        const notas = await fetch('/api/notas_lista').then(r=>r.json());
+        notas.forEach(n => {
+            const opt = document.createElement('option');
+            opt.value = n.id;
+            opt.textContent = `${n.numero_nota} - ${n.cliente_nome} (${fmt(n.valor_total)})`;
+            selNota.appendChild(opt);
+        });
+        if(notaId) selNota.value = notaId;
+
+        // Fornecedores dropdown
+        const selForn = document.getElementById('custo-fornecedor');
+        selForn.innerHTML = '<option value="">Selecione...</option>';
+        const forns = await fetch('/api/fornecedores_lista').then(r=>r.json());
+        forns.forEach(f => { selForn.innerHTML += `<option value="${f.id}">${f.nome}</option>`; });
+
+        document.getElementById('custo-data').value = new Date().toISOString().slice(0,10);
+        atualizarResumo();
+        new bootstrap.Modal(document.getElementById('modalCusto')).show();
+    }
+
+    function adicionarCustoNota(notaId) { abrirModalCusto(notaId); }
+
+    function calcularDescontosAuto() {
+        const vc = parseFloat(document.getElementById('custo-valor-compra').value)||0;
+        document.getElementById('custo-funrural').value = (vc * 0.015).toFixed(2);
+        document.getElementById('custo-taxa-coop').value = (vc * 0.155).toFixed(2);
+        atualizarResumo();
+    }
+
+    function atualizarResumo() {
+        const vc = parseFloat(document.getElementById('custo-valor-compra').value)||0;
+        let totalDesc = 0;
+        document.querySelectorAll('.desconto-field').forEach(el => { totalDesc += parseFloat(el.value)||0; });
+        const liq = vc - totalDesc;
+        document.getElementById('resumo-compra').textContent = fmt(vc);
+        document.getElementById('resumo-descontos').textContent = '- '+fmt(totalDesc);
+        document.getElementById('resumo-liquido').textContent = fmt(liq);
+    }
+
+    // Atualizar resumo em tempo real
+    document.addEventListener('input', e => { if(e.target.classList.contains('desconto-field')) atualizarResumo(); });
+
+    async function salvarCusto() {
+        const body = {
+            nota_id: document.getElementById('custo-nota').value,
+            fornecedor_id: document.getElementById('custo-fornecedor').value,
+            data_emissao: document.getElementById('custo-data').value,
+            numero_nota_fornecedor: document.getElementById('custo-nf-forn').value,
+            produto_descricao: document.getElementById('custo-produto').value,
+            peso_liquido: document.getElementById('custo-peso').value,
+            valor_compra: document.getElementById('custo-valor-compra').value,
+            status: document.getElementById('custo-status').value,
+            funrural: document.getElementById('custo-funrural').value,
+            taxa_cooperativa: document.getElementById('custo-taxa-coop').value,
+            desconto_aipro: document.getElementById('custo-desconto-aipro').value,
+            pg_caixa_entrega: document.getElementById('custo-pg-caixa-entrega').value,
+            pg_frete_coop: document.getElementById('custo-pg-frete-coop').value,
+            pg_caixa_papelao: document.getElementById('custo-pg-caixa-papelao').value,
+            frete_cooaipro: document.getElementById('custo-frete-cooaipro').value,
+            pg_extra_paa: document.getElementById('custo-pg-extra-paa').value,
+            pg_frete_kits_mogi: document.getElementById('custo-pg-frete-kits-mogi').value,
+            pg_ref_uso_hr: document.getElementById('custo-pg-ref-uso-hr').value,
+            pg_ref_uso_ford: document.getElementById('custo-pg-ref-uso-ford').value,
+            ref_frete_entrega_poa: document.getElementById('custo-ref-frete-poa').value,
+            pg_afranio: document.getElementById('custo-pg-afranio').value,
+            pg_frete_mogi: document.getElementById('custo-pg-frete-mogi').value,
+            vlr_pago_combustivel: document.getElementById('custo-vlr-combustivel').value,
+            frete_entrega_sao_jose: document.getElementById('custo-frete-sjc').value,
+            pg_uso_camara_fria: document.getElementById('custo-pg-camara-fria').value,
+            pg_doacao_produtor: document.getElementById('custo-pg-doacao').value,
+            pg_extra: document.getElementById('custo-pg-extra').value,
+            adiantamento: document.getElementById('custo-adiantamento').value,
+            descontos_outros: document.getElementById('custo-descontos-outros').value,
+        };
+        if(!body.nota_id||!body.fornecedor_id||!body.data_emissao||!body.valor_compra){
+            return alert('Preencha: Nota, Fornecedor, Data e Valor Compra');
+        }
+        const res = await fetch('/api/custos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+        const data = await res.json();
+        if(res.ok){
+            alert(data.mensagem + ' | Valor líquido: '+fmt(data.valor_liquido));
+            bootstrap.Modal.getInstance(document.getElementById('modalCusto')).hide();
+            document.getElementById('formCusto').reset();
+            loadData();
+        } else { alert('Erro: '+data.erro); }
+    }
+
+    // ===================== VER CUSTOS DE UMA NOTA =====================
+    async function verCustosNota(notaId, numNota) {
+        document.getElementById('custos-nota-titulo').textContent = numNota;
+        const custos = await fetch(`/api/custos/${notaId}`).then(r=>r.json());
+        let totalCompra=0, totalDesc=0, totalLiq=0;
+        const tbody = document.querySelector('#tabela-custos-nota tbody');
+        if(custos.length===0){
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Nenhum custo vinculado a esta nota</td></tr>';
+        } else {
+            tbody.innerHTML = custos.map(c => {
+                const descontos = (c.funrural||0)+(c.taxa_cooperativa||0)+(c.desconto_aipro||0)+
+                    (c.pg_caixa_entrega||0)+(c.pg_frete_coop||0)+(c.pg_caixa_papelao||0)+
+                    (c.frete_cooaipro||0)+(c.pg_extra_paa||0)+(c.pg_frete_kits_mogi||0)+
+                    (c.pg_ref_uso_hr||0)+(c.pg_ref_uso_ford||0)+(c.ref_frete_entrega_poa||0)+
+                    (c.pg_afranio||0)+(c.pg_frete_mogi||0)+(c.vlr_pago_combustivel||0)+
+                    (c.frete_entrega_sao_jose||0)+(c.pg_uso_camara_fria||0)+
+                    (c.pg_doacao_produtor||0)+(c.pg_extra||0)+(c.adiantamento||0)+(c.descontos_outros||0);
+                totalCompra += c.valor_compra||0;
+                totalDesc += descontos;
+                totalLiq += c.valor_liquido||0;
+                return `<tr>
+                    <td>${c.fornecedor_nome}</td>
+                    <td>${c.produto_descricao||'-'}</td>
+                    <td class="text-end">${fmt(c.valor_compra)}</td>
+                    <td class="text-end valor-negativo">${fmt(descontos)}</td>
+                    <td class="text-end">${fmt(c.valor_liquido)}</td>
+                    <td><span class="badge-status badge-${c.status}">${c.status}</span></td>
+                </tr>`;
+            }).join('');
+        }
+        document.getElementById('custos-total-compra').textContent = fmt(totalCompra);
+        document.getElementById('custos-total-descontos').textContent = fmt(totalDesc);
+        document.getElementById('custos-total-liquido').textContent = fmt(totalLiq);
+        document.getElementById('btn-add-custo-nota').onclick = () => {
+            bootstrap.Modal.getInstance(document.getElementById('modalCustosNota')).hide();
+            adicionarCustoNota(notaId);
+        };
+        new bootstrap.Modal(document.getElementById('modalCustosNota')).show();
+    }
+
+    // Init
+    loadData();
+    setInterval(loadData, 30000);
+    </script>
+</body>
+</html>

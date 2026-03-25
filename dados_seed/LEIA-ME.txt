@@ -1,0 +1,40 @@
+Dados seed: tabelas para migração inicial e construção do banco
+
+Na primeira execução, o sistema lê os arquivos desta pasta e migra as informações
+para o banco local (coaipro.db), construindo o banco seed.
+
+FORMATO
+
+  Opção A) Arquivos CSV (um por entidade)
+    - clientes.csv
+    - fornecedores.csv
+    - produtos.csv (opcional)
+    - notas_fiscais.csv
+    - pagamentos_fornecedores.csv
+
+  Opção B) Planilha Excel (um arquivo .xlsx com abas)
+    - Abas: clientes, fornecedores, produtos, notas_fiscais, pagamentos_fornecedores
+    - Nome do arquivo: qualquer (ex: seed.xlsx)
+
+COLUNAS (nomes exatos recomendados)
+
+  clientes.csv / aba Clientes:
+    nome, tipo, cidade, prazo_pagamento_dias, ativo
+
+  fornecedores.csv / aba Fornecedores:
+    nome, cpf_cnpj, cidade, ativo
+
+  produtos.csv / aba Produtos (opcional):
+    nome, variedade, unidade_medida, preco_referencia
+
+  notas_fiscais.csv / aba Notas_fiscais:
+    numero_nota, data_emissao, cliente_nome (ou cliente_id), peso_liquido,
+    valor_total, valor_frete, previsao_pagamento, data_pagamento, status, observacoes
+
+  pagamentos_fornecedores.csv / aba Pagamentos_fornecedores:
+    fornecedor_nome (ou fornecedor_id), data_emissao, prefeitura, produto_descricao,
+    numero_nota_fornecedor, peso_liquido, valor_compra, funrural, taxa_cooperativa,
+    valor_liquido, status
+
+Datas no formato YYYY-MM-DD. Valores numéricos com ponto ou vírgula.
+Chaves estrangeiras: use cliente_nome / fornecedor_nome que o sistema resolve pelo nome.

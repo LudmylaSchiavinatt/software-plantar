@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLANTAR - Gestão de Contratos da Agricultura Familiar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:#0f1923; color:#fff; min-height:100vh; overflow-x:hidden; }
+
+        /* Fundo animado */
+        .bg-animated {
+            position:fixed; top:0; left:0; width:100%; height:100%; z-index:0;
+            background: linear-gradient(135deg, #0d1b2a 0%, #1b2838 30%, #0f4c3a 60%, #1a3a2a 100%);
+        }
+        .bg-animated::before {
+            content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%;
+            background: radial-gradient(circle at 30% 40%, rgba(46,125,50,0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 60%, rgba(21,101,192,0.1) 0%, transparent 50%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%,100%{opacity:0.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.05)} }
+
+        .content { position:relative; z-index:1; }
+
+        /* Navbar */
+        .navbar { background:transparent !important; padding:20px 0; }
+        .navbar-brand { font-size:1.6rem; font-weight:800; color:#fff !important; letter-spacing:-0.5px; }
+        .navbar-brand i { color:#4caf50; }
+
+        /* Hero */
+        .hero { padding:60px 0 40px; text-align:center; }
+        .hero h1 { font-size:3rem; font-weight:800; margin-bottom:12px; }
+        .hero h1 span { background:linear-gradient(135deg,#4caf50,#81c784); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .hero p { font-size:1.15rem; color:rgba(255,255,255,0.65); max-width:580px; margin:0 auto 40px; line-height:1.7; }
+
+        /* KPI Cards */
+        .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:20px; margin-bottom:50px; }
+        .kpi-card {
+            background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08);
+            border-radius:16px; padding:28px 24px; text-align:center;
+            backdrop-filter:blur(10px); transition:all .3s;
+        }
+        .kpi-card:hover { background:rgba(255,255,255,0.1); transform:translateY(-4px); border-color:rgba(76,175,80,0.3); }
+        .kpi-card i { font-size:2rem; margin-bottom:12px; display:block; }
+        .kpi-card .kpi-value { font-size:1.7rem; font-weight:800; margin-bottom:4px; }
+        .kpi-card .kpi-label { font-size:0.8rem; text-transform:uppercase; letter-spacing:1.5px; color:rgba(255,255,255,0.5); }
+        .kpi-green i,.kpi-green .kpi-value { color:#4caf50; }
+        .kpi-orange i,.kpi-orange .kpi-value { color:#ff9800; }
+        .kpi-blue i,.kpi-blue .kpi-value { color:#42a5f5; }
+        .kpi-purple i,.kpi-purple .kpi-value { color:#ab47bc; }
+
+        /* Action Cards */
+        .action-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:24px; margin-bottom:60px; }
+        .action-card {
+            background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+            border-radius:20px; padding:40px 32px; text-align:center;
+            backdrop-filter:blur(10px); transition:all .35s; cursor:pointer; text-decoration:none; color:#fff;
+        }
+        .action-card:hover { background:rgba(255,255,255,0.1); transform:translateY(-6px); color:#fff; text-decoration:none; }
+        .action-card .icon-wrap {
+            width:72px; height:72px; border-radius:18px; display:flex; align-items:center; justify-content:center;
+            margin:0 auto 20px; font-size:1.8rem;
+        }
+        .action-card h3 { font-size:1.3rem; font-weight:700; margin-bottom:8px; }
+        .action-card p { font-size:0.9rem; color:rgba(255,255,255,0.55); line-height:1.6; margin:0; }
+        .icon-graficos { background:linear-gradient(135deg,#2e7d32,#4caf50); }
+        .icon-tabelas { background:linear-gradient(135deg,#1565c0,#42a5f5); }
+        .icon-cadastro { background:linear-gradient(135deg,#6a1b9a,#ab47bc); }
+
+        /* DB Tools */
+        .db-tools {
+            display:flex; justify-content:center; gap:16px; margin-bottom:60px; flex-wrap:wrap;
+        }
+        .db-btn {
+            display:flex; align-items:center; gap:10px; padding:14px 28px;
+            background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+            border-radius:12px; color:rgba(255,255,255,0.75); text-decoration:none;
+            font-size:.92rem; font-weight:600; transition:all .3s; cursor:pointer;
+        }
+        .db-btn:hover { background:rgba(255,255,255,0.12); color:#fff; transform:translateY(-2px); }
+        .db-btn i { font-size:1.3rem; }
+        .db-btn-download i { color:#42a5f5; }
+        .db-btn-upload i { color:#ff9800; }
+        .db-btn input[type=file] { display:none; }
+
+        /* Credits */
+        .credits-section { padding:50px 0 30px; border-top:1px solid rgba(255,255,255,0.06); }
+        .credits-section h5 { font-size:.75rem; text-transform:uppercase; letter-spacing:3px; color:rgba(255,255,255,0.3); margin-bottom:30px; text-align:center; }
+        .credits-grid { display:flex; justify-content:center; gap:40px; flex-wrap:wrap; margin-bottom:30px; }
+        .credit-item { text-align:center; min-width:140px; }
+        .credit-icon {
+            width:64px; height:64px; border-radius:16px; display:flex; align-items:center; justify-content:center;
+            margin:0 auto 10px; font-size:1.6rem; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08);
+        }
+        .credit-item .credit-name { font-weight:700; font-size:.92rem; margin-bottom:2px; }
+        .credit-item .credit-desc { font-size:.75rem; color:rgba(255,255,255,0.4); }
+
+        .apoio-section { text-align:center; margin:24px 0 20px; }
+        .apoio-section .apoio-label { font-size:.7rem; text-transform:uppercase; letter-spacing:2px; color:rgba(255,255,255,0.3); margin-bottom:8px; }
+        .apoio-section .apoio-name { font-size:1rem; font-weight:700; color:rgba(255,255,255,0.6); }
+        .apoio-section .apoio-prog { font-size:.85rem; color:rgba(255,255,255,0.35); }
+
+        .devs-section { text-align:center; margin-top:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.04); }
+        .devs-section .devs-label { font-size:.7rem; text-transform:uppercase; letter-spacing:2px; color:rgba(255,255,255,0.25); margin-bottom:8px; }
+        .devs-section .dev-name { font-size:.9rem; color:rgba(255,255,255,0.55); line-height:1.8; }
+        .devs-section .dev-name strong { color:rgba(255,255,255,0.75); }
+
+        /* Footer */
+        .footer { text-align:center; padding:20px; color:rgba(255,255,255,0.3); font-size:0.85rem; border-top:1px solid rgba(255,255,255,0.06); }
+
+        /* Toast */
+        .toast-container { position:fixed; bottom:20px; right:20px; z-index:9999; }
+    </style>
+</head>
+<body>
+    <div class="bg-animated"></div>
+    <div class="content">
+        <nav class="navbar">
+            <div class="container">
+                <span class="navbar-brand"><i class="bi bi-flower2" style="color:#4caf50"></i> PLANTAR</span>
+                <span style="color:rgba(255,255,255,0.4);font-size:0.85rem"><i class="bi bi-calendar3"></i> <span id="data-hoje"></span></span>
+            </div>
+        </nav>
+
+        <section class="hero">
+            <div class="container">
+                <h1><span>PLANTAR</span></h1>
+                <p style="font-size:.95rem;color:rgba(255,255,255,0.45);margin-bottom:8px;letter-spacing:1px">Planilha Coletiva para a Administração de Contratos da Agricultura Familiar</p>
+                <p>Controle completo de notas fiscais, pagamentos a fornecedores, custos e resultados por prefeitura. Tudo em um painel integrado.</p>
+            </div>
+        </section>
+
+        <section class="container">
+            <div class="kpi-grid" id="kpis">
+                <div class="kpi-card kpi-green">
+                    <i class="bi bi-cash-stack"></i>
+                    <div class="kpi-value" id="kpi-receber">--</div>
+                    <div class="kpi-label">A Receber</div>
+                </div>
+                <div class="kpi-card kpi-orange">
+                    <i class="bi bi-arrow-up-circle"></i>
+                    <div class="kpi-value" id="kpi-pagar">--</div>
+                    <div class="kpi-label">A Pagar (Custos)</div>
+                </div>
+                <div class="kpi-card kpi-blue">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <div class="kpi-value" id="kpi-notas">--</div>
+                    <div class="kpi-label">Notas Pendentes</div>
+                </div>
+                <div class="kpi-card kpi-purple">
+                    <i class="bi bi-people"></i>
+                    <div class="kpi-value" id="kpi-pag">--</div>
+                    <div class="kpi-label">Pagamentos Pendentes</div>
+                </div>
+            </div>
+
+            <div class="action-grid">
+                <a href="/painel/graficos" class="action-card">
+                    <div class="icon-wrap icon-graficos"><i class="bi bi-bar-chart-line"></i></div>
+                    <h3>Gráficos</h3>
+                    <p>Visualize resultados por prefeitura, distribuição de custos e comparativos financeiros em gráficos interativos.</p>
+                </a>
+                <a href="/painel/tabelas" class="action-card">
+                    <div class="icon-wrap icon-tabelas"><i class="bi bi-table"></i></div>
+                    <h3>Tabelas</h3>
+                    <p>Consulte notas fiscais, pagamentos, fornecedores e prefeituras com filtros e busca avançada.</p>
+                </a>
+                <a href="/painel/cadastros" class="action-card">
+                    <div class="icon-wrap icon-cadastro"><i class="bi bi-plus-circle"></i></div>
+                    <h3>Cadastros</h3>
+                    <p>Registre novas notas fiscais e custos/descontos vinculados a fornecedores e prefeituras.</p>
+                </a>
+                <a href="/painel/visualizador" class="action-card">
+                    <div class="icon-wrap" style="background:linear-gradient(135deg,#00695c,#26a69a)"><i class="bi bi-grid-3x3"></i></div>
+                    <h3>Visualizador BD</h3>
+                    <p>Visualize todas as tabelas do banco em formato planilha. Exporte para Excel com um clique.</p>
+                </a>
+            </div>
+
+            <!-- Ferramentas BD -->
+            <div class="db-tools">
+                <a href="/api/banco/download" class="db-btn db-btn-download">
+                    <i class="bi bi-download"></i> Baixar Banco de Dados
+                </a>
+                <label class="db-btn db-btn-upload">
+                    <i class="bi bi-upload"></i> Enviar Banco de Dados
+                    <input type="file" id="upload-bd" accept=".db,.sqlite,.sqlite3" onchange="uploadBD(this)">
+                </label>
+            </div>
+        </section>
+
+        <!-- Créditos -->
+        <section class="credits-section">
+            <div class="container">
+                <h5>Desenvolvido por</h5>
+                <div class="credits-grid">
+                    <div class="credit-item">
+                        <div class="credit-icon"><i class="bi bi-mortarboard-fill" style="color:#c62828"></i></div>
+                        <div class="credit-name">UFSCar</div>
+                        <div class="credit-desc">Universidade Federal de São Carlos<br>Campus Lagoa do Sino, Buri - SP</div>
+                    </div>
+                    <div class="credit-item">
+                        <div class="credit-icon"><i class="bi bi-flower1" style="color:#4caf50"></i></div>
+                        <div class="credit-name">CeMECA</div>
+                        <div class="credit-desc">Centro de Modelagem Estatística<br>em Ciências Ambientais</div>
+                    </div>
+                    <div class="credit-item">
+                        <div class="credit-icon"><i class="bi bi-truck" style="color:#ff9800"></i></div>
+                        <div class="credit-name">DeepTech Kokue</div>
+                        <div class="credit-desc">Tecnologia para<br>o Agronegócio</div>
+                    </div>
+                </div>
+
+                <div class="apoio-section">
+                    <div class="apoio-label">Apoio</div>
+                    <div class="apoio-name">MDA - Ministério do Desenvolvimento Agrário</div>
+                    <div class="apoio-prog">Programa Mais Gestão Sudeste</div>
+                </div>
+
+                <div class="devs-section">
+                    <div class="devs-label">Desenvolvedores</div>
+                    <div class="dev-name"><strong>Prof. Dr. Iuri E. P. Ferreira</strong></div>
+                    <div class="dev-name"><strong>Eng. Dr. Lucca Pérez</strong></div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <div class="container">PLANTAR &copy; 2025 - Planilha Coletiva para a Administração de Contratos da Agricultura Familiar</div>
+        </footer>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-container">
+        <div class="toast align-items-center border-0" id="toastBD" role="alert">
+            <div class="d-flex">
+                <div class="toast-body" id="toastBDMsg"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.getElementById('data-hoje').textContent = new Date().toLocaleDateString('pt-BR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    const fmt = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
+    fetch('/api/resumo').then(r=>r.json()).then(d => {
+        document.getElementById('kpi-receber').textContent = fmt(d.totais.valor_a_receber);
+        document.getElementById('kpi-pagar').textContent = fmt(d.totais.valor_a_pagar);
+        document.getElementById('kpi-notas').textContent = d.totais.notas_pendentes;
+        document.getElementById('kpi-pag').textContent = d.totais.pagamentos_pendentes;
+    }).catch(() => {});
+
+    function showToastBD(msg, tipo) {
+        const el = document.getElementById('toastBD');
+        el.className = `toast align-items-center text-bg-${tipo} border-0`;
+        document.getElementById('toastBDMsg').textContent = msg;
+        new bootstrap.Toast(el, {delay:4000}).show();
+    }
+
+    async function uploadBD(input) {
+        const file = input.files[0];
+        if(!file) return;
+        if(!confirm(`Substituir o banco de dados atual pelo arquivo "${file.name}"?\n\nATENÇÃO: esta ação substitui todos os dados atuais. Recomenda-se baixar um backup antes.`)) {
+            input.value = '';
+            return;
+        }
+        const form = new FormData();
+        form.append('arquivo', file);
+        try {
+            const res = await fetch('/api/banco/upload', {method:'POST', body:form});
+            const data = await res.json();
+            if(res.ok) {
+                showToastBD(data.mensagem, 'success');
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                showToastBD('Erro: '+data.erro, 'danger');
+            }
+        } catch(e) {
+            showToastBD('Erro ao enviar arquivo', 'danger');
+        }
+        input.value = '';
+    }
+    </script>
+</body>
+</html>

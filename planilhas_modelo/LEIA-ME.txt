@@ -1,0 +1,10 @@
+Coloque aqui as planilhas modelo (.xlsx) para a primeira execução do sistema.
+
+Na primeira execução, o app irá:
+1. Conciliar e carregar os dados destas planilhas
+2. Migrar tudo para o banco local (coaipro.db)
+
+- Planilha "À Pagar": deve ter a aba "À Pagar - 2025" (entregas/fornecedores).
+- Planilha "À Receber": deve ter a aba "À Receber- 2025" (notas das prefeituras).
+
+Pode ser um único arquivo com as duas abas ou dois arquivos .xlsx (o primeiro será usado para À Pagar, o segundo para À Receber).

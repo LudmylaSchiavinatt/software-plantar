@@ -1,0 +1,54 @@
+# =========================
+# Chaves e segredos
+# =========================
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+distribution.key
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+
+# =========================
+# Variáveis de ambiente
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# Distribuição / build
+# =========================
+dist/
+build/
+build_temp/
+*.exe
+*.msi
+*.spec
+
+# =========================
+# Dados locais / bancos
+# =========================
+*.db
+*.sqlite
+*.sqlite3
+
+# =========================
+# Arquivos de planilha e dados tabulares
+# =========================
+*.xls
+*.xlsx
+*.xlsm
+*.csv
+
+# =========================
+# Python / testes / cache
+# =========================
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+*.pyc
