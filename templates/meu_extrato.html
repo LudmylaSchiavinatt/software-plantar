@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLANTAR - Meu Extrato</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        :root { --sidebar-w:260px; --primary:#2e7d32; --bg:#f5f6fa; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:var(--bg); }
+
+        /* Sidebar Simplificada */
+        .sidebar {
+            position:fixed; top:0; left:0; width:var(--sidebar-w); height:100vh;
+            background:linear-gradient(180deg,#1a2332 0%,#0f1923 100%);
+            color:#fff; z-index:100; display:flex; flex-direction:column;
+            box-shadow:4px 0 20px rgba(0,0,0,.15);
+        }
+        .sidebar-brand { padding:24px 20px; border-bottom:1px solid rgba(255,255,255,.06); font-size:1.2rem; font-weight:800; }
+        .sidebar-brand i { color:#4caf50; margin-right:6px; }
+        .sidebar-nav { flex:1; padding:16px 0; overflow-y:auto; }
+        .sidebar-section { padding:6px 20px; font-size:.7rem; text-transform:uppercase; letter-spacing:2px; color:rgba(255,255,255,.3); margin-top:16px; }
+        .sidebar-link {
+            display:flex; align-items:center; gap:12px; padding:11px 20px;
+            color:rgba(255,255,255,.6); text-decoration:none; font-size:.92rem;
+            transition:all .2s; border-left:3px solid transparent;
+        }
+        .sidebar-link:hover { color:#fff; background:rgba(255,255,255,.05); }
+        .sidebar-link.active { color:#fff; background:rgba(76,175,80,.12); border-left-color:#4caf50; font-weight:600; }
+        .sidebar-link i { font-size:1.1rem; width:22px; text-align:center; }
+        
+        .main { margin-left:var(--sidebar-w); min-height:100vh; }
+        .topbar {
+            background:#fff; padding:16px 28px; display:flex; align-items:center; justify-content:space-between;
+            box-shadow:0 1px 4px rgba(0,0,0,.06); position:sticky; top:0; z-index:50;
+        }
+        .topbar h1 { font-size:1.25rem; font-weight:700; color:#1a2332; margin:0; }
+        .page-content { padding:28px; }
+
+        /* Cards de Resumo */
+        .summary-card { background:#fff; border-radius:12px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,.05); border-left:4px solid var(--primary); }
+        .summary-card.warning { border-left-color:#ff9800; }
+        .summary-card.info { border-left-color:#1565c0; }
+        .summary-label { font-size:.8rem; text-transform:uppercase; color:#888; letter-spacing:1px; margin-bottom:5px; }
+        .summary-value { font-size:1.5rem; font-weight:800; color:#1a2332; }
+
+        /* Tabela */
+        .table-card { background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.05); overflow:hidden; margin-top:24px; }
+        .table-header { padding:18px 24px; font-weight:700; border-bottom:1px solid #f0f0f0; background:linear-gradient(135deg,#2e7d32,#43a047); color:#fff; }
+        
+        .badge-status { padding:5px 10px; border-radius:20px; font-size:0.8rem; }
+        .badge-pago { background-color:#c8e6c9; color:#1b5e20; }
+        .badge-pendente { background-color:#fff3e0; color:#e65100; }
+
+        @media(max-width:768px) { .sidebar{width:0;display:none;} .main{margin-left:0;} }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand"><i class="bi bi-flower2"></i> PLANTAR</div>
+        <nav class="sidebar-nav">
+            <div class="sidebar-section">Área do Cooperado</div>
+            <!-- Agora a página inicial/cooperativa é a ativa -->
+            <a href="/cooperativa" class="sidebar-link active"><i class="bi bi-house-door"></i> Início / Cotações</a>
+            <a href="/meu-extrato" class="sidebar-link"><i class="bi bi-wallet2"></i> Meu Extrato</a>
+          <a href="/meu-perfil" class="sidebar-link"><i class="bi bi-people"></i> Meu Perfil</a>
+            <a href="/logout" class="sidebar-link" style="color:#ef5350; margin-top: 20px;"><i class="bi bi-box-arrow-right"></i> Sair</a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main">
+        <div class="topbar">
+            <div>
+                <h1 style="margin:0"><i class="bi bi-person-circle"></i> Painel do Cooperado</h1>
+                <small style="color:#888;font-size:.72rem">Acompanhamento financeiro individual</small>
+            </div>
+            <div>
+                <span class="text-muted" style="font-size:0.9rem;">Logado como: <strong>{{ current_user.email }}</strong></span>
+            </div>
+        </div>
+
+        <div class="page-content">
+            <!-- Cards de Resumo Financeiro -->
+            {% if resumo %}
+            <div class="row g-4">
+                <div class="col-md-3">
+                    <div class="summary-card">
+                        <div class="summary-label">Sua Cota</div>
+                        <div class="summary-value format-currency">{{ resumo.cota | default(0) }}</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="summary-card info">
+                        <div class="summary-label">Saldo Atual</div>
+                        <div class="summary-value format-currency">{{ resumo.saldo | default(0) }}</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="summary-card" style="border-left-color: #4caf50;">
+                        <div class="summary-label">Total Recebido (Pago)</div>
+                        <div class="summary-value format-currency">{{ resumo.total_pago | default(0) }}</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="summary-card warning">
+                        <div class="summary-label">A Receber (Pendente)</div>
+                        <div class="summary-value format-currency">{{ resumo.pendente | default(0) }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Tabela de Pagamentos -->
+            <div class="table-card">
+                <div class="table-header"><i class="bi bi-list-columns-reverse"></i> Histórico de Entregas e Pagamentos</div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Data Emissão</th>
+                                <th>Produto</th>
+                                <th>Nota da Cooperativa</th>
+                                <th class="text-end">Valor Compra</th>
+                                <th class="text-end">Valor Líquido</th>
+                                <th class="text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in pagamentos %}
+                            <tr>
+                                <td>{{ p.data_emissao }}</td>
+                                <td>{{ p.produto_descricao | default('-') }}</td>
+                                <td>{{ p.nota_vinculada | default('Sem Vínculo') }}</td>
+                                <td class="text-end text-muted format-currency">{{ p.valor_compra }}</td>
+                                <td class="text-end fw-bold format-currency" style="color: #2e7d32;">{{ p.valor_liquido }}</td>
+                                <td class="text-center">
+                                    <span class="badge-status badge-{{ p.status | lower }}">{{ p.status | capitalize }}</span>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">Nenhum registro encontrado no seu extrato.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Formata automaticamente todos os elementos com a classe format-currency
+        document.querySelectorAll('.format-currency').forEach(el => {
+            const val = parseFloat(el.textContent);
+            if (!isNaN(val)) {
+                el.textContent = new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                }).format(val);
+            }
+        });
+    </script>
+</body>
+</html>

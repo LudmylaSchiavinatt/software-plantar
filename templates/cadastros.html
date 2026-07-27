@@ -201,9 +201,42 @@
                                 <input type="text" class="form-control" id="custo-nf-forn">
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">Produto / Descrição</label>
-                                <input type="text" class="form-control" id="custo-produto">
-                            </div>
+    <label class="form-label">Produto</label>
+    <select class="form-select" id="custo-produto">
+        <option value="">Selecione...</option>
+
+        <optgroup label="Hortaliças">
+            <option>Alface Crespa</option>
+            <option>Couve</option>
+            <option>Repolho Verde</option>
+            <option>Repolho Roxo</option>
+            <option>Chuchu</option>
+            <option>Abobrinha</option>
+            <option>Pepino</option>
+        </optgroup>
+
+        <optgroup label="Legumes">
+            <option>Tomate Cereja</option>
+            <option>Tomate Salada</option>
+            <option>Cenoura</option>
+            <option>Batata Doce</option>
+            <option>Mandioca</option>
+            <option>Quiabo</option>
+        </optgroup>
+
+        <optgroup label="Frutas">
+            <option>Banana Nanica</option>
+            <option>Banana Prata</option>
+            <option>Laranja Pera</option>
+        </optgroup>
+
+        <optgroup label="Grãos">
+            <option>Milho Verde</option>
+            <option>Feijão</option>
+            <option>Arroz</option>
+        </optgroup>
+    </select>
+</div>
                             <div class="col-md-2">
                                 <label class="form-label">Peso Líq. (kg)</label>
                                 <input type="number" step="0.01" class="form-control" id="custo-peso" value="0">
@@ -227,7 +260,20 @@
                             <h6 class="mb-3 text-muted"><i class="bi bi-dash-circle"></i> Descontos</h6>
                             <div class="row g-2">
                                 <div class="col-lg-2 col-md-3 col-6"><label>Funrural 1,5%</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-funrural" value="0"></div>
-                                <div class="col-lg-2 col-md-3 col-6"><label>Taxa Coop 15,5%</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-taxa-coop" value="0"></div>
+                               <div class="col-lg-2 col-md-3 col-6">
+                                                <label>Taxa Coop (%)</label>
+                                                <input type="number" step="0.01"
+                                                    class="form-control form-control-sm"
+                                                    id="custo-taxa-coop-pct" value="0">
+                                            </div>
+
+                                            <div class="col-lg-2 col-md-3 col-6">
+                                                <label>Taxa Coop (R$)</label>
+                                                <input type="number" step="0.01"
+                                                    class="form-control form-control-sm desconto-field"
+                                                    id="custo-taxa-coop" value="0" readonly>
+                                            </div>
+
                                 <div class="col-lg-2 col-md-3 col-6"><label>Desc. AIPRO</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-desconto-aipro" value="0"></div>
                                 <div class="col-lg-2 col-md-3 col-6"><label>Pg Cx Entrega</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-caixa-entrega" value="0"></div>
                                 <div class="col-lg-2 col-md-3 col-6"><label>Pg Frete Coop</label><input type="number" step="0.01" class="form-control form-control-sm desconto-field" id="custo-pg-frete-coop" value="0"></div>
@@ -290,138 +336,170 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-    async function uploadBD(input) {
-        const file = input.files[0]; if(!file) return;
-        if(!confirm(`Substituir o banco pelo arquivo "${file.name}"?\nFaça backup antes!`)) { input.value=''; return; }
-        const form = new FormData(); form.append('arquivo', file);
-        const res = await fetch('/api/banco/upload',{method:'POST',body:form});
-        const data = await res.json();
-        if(res.ok) { showToast(data.mensagem); setTimeout(()=>location.reload(),2000); }
-        else showToast('Erro: '+data.erro,'danger');
-        input.value='';
-    }
-    const fmt = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
+async function uploadBD(input) {
+    const file = input.files[0]; if(!file) return;
+    if(!confirm(`Substituir o banco pelo arquivo "${file.name}"?\nFaça backup antes!`)) { input.value=''; return; }
+    const form = new FormData(); form.append('arquivo', file);
+    const res = await fetch('/api/banco/upload',{method:'POST',body:form});
+    const data = await res.json();
+    if(res.ok) { showToast(data.mensagem); setTimeout(()=>location.reload(),2000); }
+    else showToast('Erro: '+data.erro,'danger');
+    input.value='';
+}
 
-    function showToast(msg, tipo='success') {
-        const el = document.getElementById('toastSucesso');
-        el.className = `toast align-items-center text-bg-${tipo} border-0`;
-        document.getElementById('toastMsg').textContent = msg;
-        new bootstrap.Toast(el,{delay:3000}).show();
-    }
+const fmt = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
 
-    // Carregar dropdowns
-    async function loadDropdowns() {
-        const [clientes, notas, forns] = await Promise.all([
-            fetch('/api/clientes_lista').then(r=>r.json()),
-            fetch('/api/notas_lista').then(r=>r.json()),
-            fetch('/api/fornecedores_lista').then(r=>r.json()),
-        ]);
+function showToast(msg, tipo='success') {
+    const el = document.getElementById('toastSucesso');
+    el.className = `toast align-items-center text-bg-${tipo} border-0`;
+    document.getElementById('toastMsg').textContent = msg;
+    new bootstrap.Toast(el,{delay:3000}).show();
+}
 
-        const selCli = document.getElementById('nota-cliente');
-        clientes.forEach(c => { selCli.innerHTML += `<option value="${c.id}">${c.nome} (${c.tipo})</option>`; });
+// ================= DROPDOWNS =================
+async function loadDropdowns() {
+    const [clientes, notas, forns] = await Promise.all([
+        fetch('/api/clientes_lista').then(r=>r.json()),
+        fetch('/api/notas_lista').then(r=>r.json()),
+        fetch('/api/fornecedores_lista').then(r=>r.json()),
+    ]);
 
-        const selNota = document.getElementById('custo-nota');
-        notas.forEach(n => { selNota.innerHTML += `<option value="${n.id}">${n.numero_nota} - ${n.cliente_nome} (${fmt(n.valor_total)})</option>`; });
+    const selCli = document.getElementById('nota-cliente');
+    clientes.forEach(c => { selCli.innerHTML += `<option value="${c.id}">${c.nome} (${c.tipo})</option>`; });
 
-        const selForn = document.getElementById('custo-fornecedor');
-        forns.forEach(f => { selForn.innerHTML += `<option value="${f.id}">${f.nome}</option>`; });
+    const selNota = document.getElementById('custo-nota');
+    notas.forEach(n => { selNota.innerHTML += `<option value="${n.id}">${n.numero_nota} - ${n.cliente_nome} (${fmt(n.valor_total)})</option>`; });
 
+    const selForn = document.getElementById('custo-fornecedor');
+    forns.forEach(f => { selForn.innerHTML += `<option value="${f.id}">${f.nome}</option>`; });
+
+    document.getElementById('nota-data').value = new Date().toISOString().slice(0,10);
+    document.getElementById('custo-data').value = new Date().toISOString().slice(0,10);
+}
+loadDropdowns();
+
+// ================= NOTA =================
+async function salvarNota() {
+    const body = {
+        numero_nota: document.getElementById('nota-numero').value,
+        data_emissao: document.getElementById('nota-data').value,
+        cliente_id: document.getElementById('nota-cliente').value,
+        peso_liquido: document.getElementById('nota-peso').value,
+        quantidade_cx: document.getElementById('nota-caixas').value,
+        valor_total: document.getElementById('nota-valor').value,
+        valor_frete: document.getElementById('nota-frete').value,
+        previsao_pagamento: document.getElementById('nota-previsao').value,
+        data_pagamento: document.getElementById('nota-pagamento').value,
+        status: document.getElementById('nota-status').value,
+        observacoes: document.getElementById('nota-obs').value,
+    };
+
+    if(!body.numero_nota||!body.data_emissao||!body.cliente_id||!body.valor_total)
+        return showToast('Preencha: Nº, Data, Cliente e Valor','danger');
+
+    const res = await fetch('/api/notas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data = await res.json();
+
+    if(res.ok) {
+        showToast(data.mensagem);
+        document.getElementById('formNota').reset();
         document.getElementById('nota-data').value = new Date().toISOString().slice(0,10);
-        document.getElementById('custo-data').value = new Date().toISOString().slice(0,10);
+        loadDropdowns();
+    } else showToast('Erro: '+data.erro,'danger');
+}
+
+// ================= CÁLCULO =================
+function calcularDescontosAuto() {
+    const vc = parseFloat(document.getElementById('custo-valor-compra').value) || 0;
+    const pct = parseFloat(document.getElementById('custo-taxa-coop-pct').value) || 0;
+
+    const funrural = vc * 0.015;
+    const taxa = vc * (pct / 100);
+
+    document.getElementById('custo-funrural').value = funrural.toFixed(2);
+    document.getElementById('custo-taxa-coop').value = taxa.toFixed(2);
+
+    atualizarResumo();
+}
+
+function atualizarResumo() {
+    const vc = parseFloat(document.getElementById('custo-valor-compra').value)||0;
+    let td = 0;
+
+    document.querySelectorAll('.desconto-field').forEach(el => {
+        td += parseFloat(el.value)||0;
+    });
+
+    document.getElementById('resumo-compra').textContent = fmt(vc);
+    document.getElementById('resumo-descontos').textContent = '- '+fmt(td);
+    document.getElementById('resumo-liquido').textContent = fmt(vc - td);
+}
+
+// 🔥 EVENTO ÚNICO (ESSA É A PARTE QUE RESOLVE SEU BUG)
+document.addEventListener('input', e => {
+
+    // recalcula automático quando muda valor ou %
+    if (
+        e.target.id === 'custo-valor-compra' ||
+        e.target.id === 'custo-taxa-coop-pct'
+    ) {
+        calcularDescontosAuto();
     }
-    loadDropdowns();
 
-    // Nota Fiscal
-    async function salvarNota() {
-        const body = {
-            numero_nota: document.getElementById('nota-numero').value,
-            data_emissao: document.getElementById('nota-data').value,
-            cliente_id: document.getElementById('nota-cliente').value,
-            peso_liquido: document.getElementById('nota-peso').value,
-            quantidade_cx: document.getElementById('nota-caixas').value,
-            valor_total: document.getElementById('nota-valor').value,
-            valor_frete: document.getElementById('nota-frete').value,
-            previsao_pagamento: document.getElementById('nota-previsao').value,
-            data_pagamento: document.getElementById('nota-pagamento').value,
-            status: document.getElementById('nota-status').value,
-            observacoes: document.getElementById('nota-obs').value,
-        };
-        if(!body.numero_nota||!body.data_emissao||!body.cliente_id||!body.valor_total)
-            return showToast('Preencha: Nº, Data, Cliente e Valor','danger');
-
-        const res = await fetch('/api/notas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-        const data = await res.json();
-        if(res.ok) {
-            showToast(data.mensagem);
-            document.getElementById('formNota').reset();
-            document.getElementById('nota-data').value = new Date().toISOString().slice(0,10);
-            loadDropdowns();
-        } else showToast('Erro: '+data.erro,'danger');
-    }
-
-    // Custo
-    function calcularDescontosAuto() {
-        const vc = parseFloat(document.getElementById('custo-valor-compra').value)||0;
-        document.getElementById('custo-funrural').value = (vc * 0.015).toFixed(2);
-        document.getElementById('custo-taxa-coop').value = (vc * 0.155).toFixed(2);
+    // atualiza resumo se qualquer desconto mudar
+    if (e.target.classList.contains('desconto-field')) {
         atualizarResumo();
     }
+});
 
-    function atualizarResumo() {
-        const vc = parseFloat(document.getElementById('custo-valor-compra').value)||0;
-        let td = 0;
-        document.querySelectorAll('.desconto-field').forEach(el => { td += parseFloat(el.value)||0; });
-        document.getElementById('resumo-compra').textContent = fmt(vc);
-        document.getElementById('resumo-descontos').textContent = '- '+fmt(td);
-        document.getElementById('resumo-liquido').textContent = fmt(vc - td);
-    }
-    document.addEventListener('input', e => { if(e.target.classList.contains('desconto-field')) atualizarResumo(); });
+// ================= SALVAR =================
+async function salvarCusto() {
+    const body = {
+        nota_id: document.getElementById('custo-nota').value,
+        fornecedor_id: document.getElementById('custo-fornecedor').value,
+        data_emissao: document.getElementById('custo-data').value,
+        numero_nota_fornecedor: document.getElementById('custo-nf-forn').value,
+        produto_descricao: document.getElementById('custo-produto').value,
+        peso_liquido: document.getElementById('custo-peso').value,
+        valor_compra: document.getElementById('custo-valor-compra').value,
+        status: document.getElementById('custo-status').value,
+        funrural: document.getElementById('custo-funrural').value,
+        taxa_cooperativa: document.getElementById('custo-taxa-coop').value,
+        desconto_aipro: document.getElementById('custo-desconto-aipro').value,
+        pg_caixa_entrega: document.getElementById('custo-pg-caixa-entrega').value,
+        pg_frete_coop: document.getElementById('custo-pg-frete-coop').value,
+        pg_caixa_papelao: document.getElementById('custo-pg-caixa-papelao').value,
+        frete_cooaipro: document.getElementById('custo-frete-cooaipro').value,
+        pg_extra_paa: document.getElementById('custo-pg-extra-paa').value,
+        pg_frete_kits_mogi: document.getElementById('custo-pg-frete-kits-mogi').value,
+        pg_ref_uso_hr: document.getElementById('custo-pg-ref-uso-hr').value,
+        pg_ref_uso_ford: document.getElementById('custo-pg-ref-uso-ford').value,
+        ref_frete_entrega_poa: document.getElementById('custo-ref-frete-poa').value,
+        pg_afranio: document.getElementById('custo-pg-afranio').value,
+        pg_frete_mogi: document.getElementById('custo-pg-frete-mogi').value,
+        vlr_pago_combustivel: document.getElementById('custo-vlr-combustivel').value,
+        frete_entrega_sao_jose: document.getElementById('custo-frete-sjc').value,
+        pg_uso_camara_fria: document.getElementById('custo-pg-camara-fria').value,
+        pg_doacao_produtor: document.getElementById('custo-pg-doacao').value,
+        pg_extra: document.getElementById('custo-pg-extra').value,
+        adiantamento: document.getElementById('custo-adiantamento').value,
+        descontos_outros: document.getElementById('custo-descontos-outros').value,
+    };
 
-    async function salvarCusto() {
-        const body = {
-            nota_id: document.getElementById('custo-nota').value,
-            fornecedor_id: document.getElementById('custo-fornecedor').value,
-            data_emissao: document.getElementById('custo-data').value,
-            numero_nota_fornecedor: document.getElementById('custo-nf-forn').value,
-            produto_descricao: document.getElementById('custo-produto').value,
-            peso_liquido: document.getElementById('custo-peso').value,
-            valor_compra: document.getElementById('custo-valor-compra').value,
-            status: document.getElementById('custo-status').value,
-            funrural: document.getElementById('custo-funrural').value,
-            taxa_cooperativa: document.getElementById('custo-taxa-coop').value,
-            desconto_aipro: document.getElementById('custo-desconto-aipro').value,
-            pg_caixa_entrega: document.getElementById('custo-pg-caixa-entrega').value,
-            pg_frete_coop: document.getElementById('custo-pg-frete-coop').value,
-            pg_caixa_papelao: document.getElementById('custo-pg-caixa-papelao').value,
-            frete_cooaipro: document.getElementById('custo-frete-cooaipro').value,
-            pg_extra_paa: document.getElementById('custo-pg-extra-paa').value,
-            pg_frete_kits_mogi: document.getElementById('custo-pg-frete-kits-mogi').value,
-            pg_ref_uso_hr: document.getElementById('custo-pg-ref-uso-hr').value,
-            pg_ref_uso_ford: document.getElementById('custo-pg-ref-uso-ford').value,
-            ref_frete_entrega_poa: document.getElementById('custo-ref-frete-poa').value,
-            pg_afranio: document.getElementById('custo-pg-afranio').value,
-            pg_frete_mogi: document.getElementById('custo-pg-frete-mogi').value,
-            vlr_pago_combustivel: document.getElementById('custo-vlr-combustivel').value,
-            frete_entrega_sao_jose: document.getElementById('custo-frete-sjc').value,
-            pg_uso_camara_fria: document.getElementById('custo-pg-camara-fria').value,
-            pg_doacao_produtor: document.getElementById('custo-pg-doacao').value,
-            pg_extra: document.getElementById('custo-pg-extra').value,
-            adiantamento: document.getElementById('custo-adiantamento').value,
-            descontos_outros: document.getElementById('custo-descontos-outros').value,
-        };
-        if(!body.nota_id||!body.fornecedor_id||!body.data_emissao||!body.valor_compra)
-            return showToast('Preencha: Nota, Fornecedor, Data e Valor','danger');
+    if(!body.nota_id||!body.fornecedor_id||!body.data_emissao||!body.valor_compra)
+        return showToast('Preencha: Nota, Fornecedor, Data e Valor','danger');
 
-        const res = await fetch('/api/custos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-        const data = await res.json();
-        if(res.ok) {
-            showToast(data.mensagem+' | Líquido: '+fmt(data.valor_liquido));
-            document.getElementById('formCusto').reset();
-            document.getElementById('custo-data').value = new Date().toISOString().slice(0,10);
-            atualizarResumo();
-            loadDropdowns();
-        } else showToast('Erro: '+data.erro,'danger');
-    }
-    </script>
+    const res = await fetch('/api/custos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data = await res.json();
+
+    if(res.ok) {
+        showToast(data.mensagem+' | Líquido: '+fmt(data.valor_liquido));
+        document.getElementById('formCusto').reset();
+        document.getElementById('custo-data').value = new Date().toISOString().slice(0,10);
+        atualizarResumo();
+        loadDropdowns();
+    } else showToast('Erro: '+data.erro,'danger');
+}
+</script>
 </body>
 </html>

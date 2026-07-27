@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>DANFE - Relatório da Nota {{ nota.numero_nota }}</title>
+    <style>
+        /* Reset e Configurações de Impressão */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial', sans-serif; }
+        body { background: #525659; display: flex; justify-content: center; padding: 20px; }
+        
+        /* Configuração da folha A4 */
+        .page {
+            background: white;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 10mm;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        /* Tipografia Padrão DANFE */
+        .t-label { font-size: 6pt; color: #333; text-transform: uppercase; }
+        .t-value { font-size: 9pt; font-weight: bold; color: #000; margin-top: 2px; }
+        
+        /* Sistema de Grid/Caixas */
+        .section-title { font-size: 8pt; font-weight: bold; margin: 10px 0 2px 0; text-transform: uppercase; }
+        .row { display: flex; width: 100%; border: 1px solid #000; border-bottom: none; }
+        .row:last-child { border-bottom: 1px solid #000; }
+        .col { border-right: 1px solid #000; padding: 2px 4px; display: flex; flex-direction: column; }
+        .col:last-child { border-right: none; }
+        
+        /* Layout Específico do Cabeçalho */
+        .header-emitente { width: 40%; text-align: center; padding: 10px; }
+        .header-danfe { width: 20%; text-align: center; padding: 5px; }
+        .header-codigo { width: 40%; padding: 5px; }
+        
+        .danfe-box { border: 1px solid #000; margin: 5px 0; padding: 5px; }
+        .barcode { height: 40px; background: repeating-linear-gradient(90deg, #000, #000 2px, #fff 2px, #fff 4px); margin-top: 5px; }
+
+        /* Tabela de Produtos */
+        .table-container { width: 100%; border: 1px solid #000; margin-top: 10px; border-collapse: collapse; }
+        .table-container th { border: 1px solid #000; font-size: 7pt; padding: 4px; background: #f9f9f9; text-align: left; }
+        .table-container td { border: 1px solid #000; font-size: 8pt; padding: 4px; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+
+        /* Botão Flutuante (Some na impressão) */
+        .btn-imprimir {
+            position: fixed; top: 20px; right: 20px;
+            background: #2e7d32; color: white; border: none;
+            padding: 12px 24px; font-size: 14px; border-radius: 4px;
+            cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .btn-imprimir:hover { background: #1b5e20; }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .page { box-shadow: none; width: 100%; margin: 0; padding: 0; }
+            .btn-imprimir { display: none !important; }
+        }
+    </style>
+</head>
+<body onload="window.print()">
+
+    <button class="btn-imprimir" onclick="window.print()">🖨️ Salvar PDF / Imprimir</button>
+
+    <div class="page">
+        
+        <!-- Canhoto de Recebimento -->
+        <div class="row" style="border-bottom: 1px solid #000; margin-bottom: 15px;">
+            <div class="col" style="width: 75%;">
+                <div class="t-label">RECEBEMOS DA COAIPRO OS PRODUTOS/SERVIÇOS CONSTANTES DA NOTA FISCAL INDICADA AO LADO[cite: 1, 4]</div>
+                <div class="row" style="border:none; margin-top: 10px;">
+                    <div class="col" style="width: 30%; border: none; border-right: 1px solid #000;"><div class="t-label">DATA DE RECEBIMENTO[cite: 1, 4]</div></div>
+                    <div class="col" style="width: 70%; border: none;"><div class="t-label">IDENTIFICAÇÃO E ASSINATURA DO RECEBEDOR[cite: 1, 4]</div></div>
+                </div>
+            </div>
+            <div class="col" style="width: 25%; text-align: center; justify-content: center;">
+                <div style="font-size: 14pt; font-weight: bold;">NF-e</div>
+                <div style="font-size: 10pt;">Nº {{ nota.numero_nota }}</div>
+            </div>
+        </div>
+
+        <!-- Cabeçalho Principal -->
+        <div class="row" style="border-bottom: 1px solid #000;">
+            <!-- Emitente -->
+            <div class="col header-emitente">
+                <div style="font-weight: bold; font-size: 12pt; margin-bottom: 5px;">COOAIPRO</div>
+                <div style="font-size: 8pt;">
+                    COOPERATIVA DE PRODUTORES<br>FAMILIARES DE SANTA ISABEL[cite: 1, 4]<br>
+                    <span style="font-size: 7pt; display: block; margin-top: 5px;">
+                        RUA PRESIDENTE CASTELO BRANCO, 687 - VILA OSIRIS<br>
+                        Santa Isabel, SP - CEP: 07500000[cite: 1, 4]
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Box DANFE -->
+            <div class="col header-danfe">
+                <div style="font-size: 12pt; font-weight: bold;">DANFE</div>
+                <div style="font-size: 7pt; margin-bottom: 5px;">Documento Auxiliar da Nota<br>Fiscal Eletrônica[cite: 1, 4]</div>
+                <div class="danfe-box">
+                    <div style="font-size: 8pt;">0 - Entrada</div>
+                    <div style="font-size: 8pt;">1 - Saída <span style="float:right; font-weight: bold; border: 1px solid #000; padding: 1px 4px;">1</span></div>
+                </div>
+                <div style="font-size: 10pt; font-weight: bold; margin-top: 5px;">Nº {{ nota.numero_nota }}</div>
+                <div style="font-size: 8pt; font-weight: bold;">SÉRIE: 1</div>
+            </div>
+            
+            <!-- Controle Fisco / Chave -->
+            <div class="col header-codigo">
+                <div class="t-label">CONTROLE DO FISCO[cite: 1, 4]</div>
+                <div class="barcode"></div> <!-- Simulação do Código de Barras -->
+                <div class="t-label" style="margin-top: 10px;">CHAVE DE ACESSO[cite: 1, 4]</div>
+                <div class="t-value" style="font-size: 8pt; text-align: center;">0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000</div>
+                <div class="t-label" style="text-align: center; margin-top: 5px; font-size: 7pt;">
+                    Consulta de autenticidade no portal nacional da<br>NF-e www.nfe.fazenda.gov.br/portal[cite: 1, 4]
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col" style="width: 50%;"><div class="t-label">NATUREZA DA OPERAÇÃO[cite: 1, 4]</div><div class="t-value">VENDA</div></div>
+            <div class="col" style="width: 50%;"><div class="t-label">PROTOCOLO DE AUTORIZAÇÃO DE USO[cite: 1, 4]</div><div class="t-value">GERADO INTERNAMENTE PELO SISTEMA PLANTAR</div></div>
+        </div>
+        <div class="row">
+            <div class="col" style="width: 33%;"><div class="t-label">INSCRIÇÃO ESTADUAL[cite: 1, 4]</div><div class="t-value">616047540117</div></div>
+            <div class="col" style="width: 33%;"><div class="t-label">INSCRIÇÃO ESTADUAL DO SUBST. TRIB.[cite: 1, 4]</div><div class="t-value"></div></div>
+            <div class="col" style="width: 34%;"><div class="t-label">CNPJ/CPF[cite: 1, 4]</div><div class="t-value">24.466.458/0001-07</div></div>
+        </div>
+
+        <!-- Destinatário / Remetente -->
+        <div class="section-title">DESTINATÁRIO / REMETENTE[cite: 1, 4]</div>
+        <div class="row">
+            <div class="col" style="width: 60%;"><div class="t-label">NOME / RAZÃO SOCIAL[cite: 1, 4]</div><div class="t-value">{{ nota.cliente_nome }}</div></div>
+            <div class="col" style="width: 20%;"><div class="t-label">CNPJ/CPF[cite: 1, 4]</div><div class="t-value"></div></div>
+            <div class="col" style="width: 20%;"><div class="t-label">DATA DA EMISSÃO[cite: 1, 4]</div><div class="t-value">{{ nota.data_emissao }}</div></div>
+        </div>
+        <div class="row">
+            <div class="col" style="width: 45%;"><div class="t-label">ENDEREÇO[cite: 1, 4]</div><div class="t-value"></div></div>
+            <div class="col" style="width: 25%;"><div class="t-label">BAIRRO/DISTRITO[cite: 1, 4]</div><div class="t-value"></div></div>
+            <div class="col" style="width: 10%;"><div class="t-label">CEP[cite: 1, 4]</div><div class="t-value"></div></div>
+            <div class="col" style="width: 20%;"><div class="t-label">DATA ENTRADA/SAÍDA[cite: 1, 4]</div><div class="t-value">{{ nota.data_emissao }}</div></div>
+        </div>
+        <div class="row">
+            <div class="col" style="width: 45%;"><div class="t-label">MUNICÍPIO[cite: 1, 4]</div><div class="t-value">{{ nota.cliente_cidade }}</div></div>
+            <div class="col" style="width: 25%;"><div class="t-label">FONE/FAX[cite: 1, 4]</div><div class="t-value"></div></div>
+            <div class="col" style="width: 10%;"><div class="t-label">UF[cite: 1, 4]</div><div class="t-value"></div></div>
+            <div class="col" style="width: 20%;"><div class="t-label">INSCRIÇÃO ESTADUAL[cite: 1, 4]</div><div class="t-value"></div></div>
+        </div>
+
+        <!-- Cálculo do Imposto (Totais) -->
+        <div class="section-title">CÁLCULO DO IMPOSTO[cite: 1, 4]</div>
+        <div class="row">
+            <div class="col" style="width: 20%;"><div class="t-label">BASE DE CÁLCULO DO ICMS[cite: 1, 4]</div><div class="t-value text-right">0,00</div></div>
+            <div class="col" style="width: 20%;"><div class="t-label">VALOR DO ICMS[cite: 1, 4]</div><div class="t-value text-right">0,00</div></div>
+            <div class="col" style="width: 20%;"><div class="t-label">BASE CÁLC. ICMS S.T.[cite: 1, 4]</div><div class="t-value text-right">0,00</div></div>
+            <div class="col" style="width: 20%;"><div class="t-label">VALOR DO ICMS S.T.[cite: 1, 4]</div><div class="t-value text-right">0,00</div></div>
+            <div class="col" style="width: 20%;"><div class="t-label">VALOR TOTAL PRODUTOS[cite: 1, 4]</div><div class="t-value text-right">{{ "%.2f"|format(nota.valor_total) }}</div></div>
+        </div>
+        <div class="row">
+            <div class="col" style="width: 20%;"><div class="t-label">VALOR DO FRETE[cite: 1, 4]</div><div class="t-value text-right">0,00</div></div>
+            <div class="col" style="width: 20%;"><div class="t-label">VALOR DO SEGURO[cite: 1, 4]</div><div class="t-value text-right">0,00</div></div>
+            <div class="col" style="width: 20%;"><div class="t-label">DESCONTO[cite: 1, 4]</div><div class="t-value text-right">0,00</div></div>
+            <div class="col" style="width: 20%;"><div class="t-label">OUTRAS DESP. ACESSÓRIAS[cite: 1, 4]</div><div class="t-value text-right">0,00</div></div>
+            <div class="col" style="width: 20%;"><div class="t-label">VALOR TOTAL DA NOTA[cite: 1, 4]</div><div class="t-value text-right">{{ "%.2f"|format(nota.valor_total) }}</div></div>
+        </div>
+
+        <!-- Tabela de Produtos (Custos/Fornecedores vinculados) -->
+        <div class="section-title">DADOS DO PRODUTO / SERVIÇO[cite: 1, 4]</div>
+        <table class="table-container">
+            <thead>
+                <tr>
+                    <th>CÓDIGO</th>
+                    <th>DESCRIÇÃO DO PRODUTO / SERVIÇO (FORNECEDOR)[cite: 1, 4]</th>
+                    <th>UNID[cite: 1, 4]</th>
+                    <th class="text-right">QTD[cite: 1, 4]</th>
+                    <th class="text-right">VLR. LÍQUIDO REPASSE</th>
+                    <th class="text-right">VLR. TOTAL[cite: 1, 4]</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set total_repassado = namespace(value=0) %}
+                {% for custo in custos %}
+                    {% set total_repassado.value = total_repassado.value + custo.valor_compra %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>Repasse a Cooperado: {{ custo.fornecedor_nome }} {{ ' - ' ~ custo.produto_descricao if custo.produto_descricao else '' }}</td>
+                    <td>KG</td>
+                    <td class="text-right">{{ "%.2f"|format(custo.peso_liquido) if custo.peso_liquido else '1.00' }}</td>
+                    <td class="text-right">{{ "%.2f"|format(custo.valor_liquido) }}</td>
+                    <td class="text-right">{{ "%.2f"|format(custo.valor_compra) }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center">Nenhum fornecedor/repasse vinculado a esta nota ainda.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Dados Adicionais -->
+        <div class="section-title">DADOS ADICIONAIS[cite: 1, 4]</div>
+        <div class="row" style="height: 120px; border-bottom: 1px solid #000;">
+            <div class="col" style="width: 60%;">
+                <div class="t-label">INFORMAÇÕES COMPLEMENTARES[cite: 1, 4]</div>
+                <div style="font-size: 8pt; margin-top: 5px;">
+                    STATUS DA NOTA: {{ nota.status | upper }}<br>
+                    RESULTADO LÍQUIDO DA NOTA (FATURAMENTO - REPASSES): R$ {{ "%.2f"|format(nota.valor_total - total_repassado.value) }}<br><br>
+                    Produtos da agricultura familiar entregues a merenda escolar com recursos do PNAE/FNDE[cite: 1, 4].
+                </div>
+            </div>
+            <div class="col" style="width: 40%;">
+                <div class="t-label">RESERVADO AO FISCO[cite: 1, 4]</div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

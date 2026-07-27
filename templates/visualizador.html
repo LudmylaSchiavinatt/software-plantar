@@ -98,25 +98,28 @@
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-brand"><i class="bi bi-flower2" style="color:#4caf50"></i> PLANTAR</div>
         <nav class="sidebar-nav">
             <div class="sidebar-section">Principal</div>
-            <a href="/" class="sidebar-link"><i class="bi bi-house"></i> Landing Page</a>
+            <a href="/" class="sidebar-link"><i class="bi bi-house"></i> Página Inicial</a>
             <div class="sidebar-section">Painel</div>
-            <a href="/painel/graficos" class="sidebar-link"><i class="bi bi-bar-chart-line"></i> Gráficos</a>
+            <a href="/painel/graficos" class="sidebar-link active"><i class="bi bi-bar-chart-line"></i> Gráficos</a>
             <a href="/painel/tabelas" class="sidebar-link"><i class="bi bi-table"></i> Tabelas</a>
-            <a href="/painel/cadastros" class="sidebar-link"><i class="bi bi-plus-circle"></i> Cadastros</a>
-            <a href="/painel/visualizador" class="sidebar-link active"><i class="bi bi-grid-3x3"></i> Visualizador BD</a>
-            <div class="sidebar-section">Tabelas do Banco</div>
-            <div id="sidebar-tabelas">
-                <div style="padding:12px 20px;color:rgba(255,255,255,.3);font-size:.8rem"><i class="bi bi-hourglass-split"></i> Carregando...</div>
-            </div>
+        
+            <a href="/painel/visualizador" class="sidebar-link"><i class="bi bi-grid-3x3"></i> Visualizador BD</a>
+                        <a href="/meu-perfil" class="sidebar-link active"><i class="bi bi-people"></i> Meu Perfil</a>
+
+            <div class="sidebar-section">Dados</div>
+            <a href="/painel/tabelas#prefeituras" class="sidebar-link"><i class="bi bi-building"></i> Prefeituras</a>
+            <a href="/painel/tabelas#fornecedores" class="sidebar-link"><i class="bi bi-truck"></i> Fornecedores</a>
+            <a href="/painel/tabelas#notas" class="sidebar-link"><i class="bi bi-receipt"></i> Notas Fiscais</a>
+            <a href="/painel/tabelas#pagamentos" class="sidebar-link"><i class="bi bi-cash-coin"></i> Pagamentos</a>
             <div class="sidebar-section">Ferramentas</div>
             <a href="/api/banco/excel" class="sidebar-link"><i class="bi bi-file-earmark-excel"></i> Exportar Excel</a>
-            <a href="/api/banco/download" class="sidebar-link"><i class="bi bi-download"></i> Baixar BD (.db)</a>
+            <a href="/api/banco/download" class="sidebar-link"><i class="bi bi-download"></i> Baixar BD</a>
             <label class="sidebar-link" style="cursor:pointer"><i class="bi bi-upload"></i> Enviar BD<input type="file" accept=".db,.sqlite,.sqlite3" onchange="uploadBD(this)" style="display:none"></label>
+            
         </nav>
         <div class="sidebar-footer">
             <div style="font-size:.65rem;color:rgba(255,255,255,.35);line-height:1.5">
@@ -127,7 +130,6 @@
             </div>
         </div>
     </aside>
-
     <!-- Main -->
     <div class="main">
         <div class="topbar">

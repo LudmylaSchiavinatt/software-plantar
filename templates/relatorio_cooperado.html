@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório do Cooperado - {{ fornecedor.nome }}</title>
+    <style>
+        /* Reset e Configurações de Impressão */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial', sans-serif; }
+        body { background: #525659; display: flex; justify-content: center; padding: 20px; }
+
+        /* Configuração da folha A4 */
+        .page {
+            background: white;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 10mm;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        /* Tipografia Padrão */
+        .t-label { font-size: 6pt; color: #333; text-transform: uppercase; }
+        .t-value { font-size: 9pt; font-weight: bold; color: #000; margin-top: 2px; }
+
+        /* Sistema de Grid/Caixas */
+        .section-title { font-size: 8pt; font-weight: bold; margin: 10px 0 2px 0; text-transform: uppercase; }
+        .row { display: flex; width: 100%; border: 1px solid #000; border-bottom: none; }
+        .row:last-child { border-bottom: 1px solid #000; }
+        .col { border-right: 1px solid #000; padding: 2px 4px; display: flex; flex-direction: column; }
+        .col:last-child { border-right: none; }
+
+        /* Layout Específico do Cabeçalho */
+        .header-emitente { width: 40%; text-align: center; padding: 10px; }
+        .header-relatorio { width: 20%; text-align: center; padding: 5px; }
+        .header-codigo { width: 40%; padding: 5px; }
+
+        .relatorio-box { border: 1px solid #000; margin: 5px 0; padding: 5px; }
+
+        /* Tabela */
+        .table-container { width: 100%; border: 1px solid #000; margin-top: 10px; border-collapse: collapse; }
+        .table-container th { border: 1px solid #000; font-size: 7pt; padding: 4px; background: #f9f9f9; text-align: left; }
+        .table-container td { border: 1px solid #000; font-size: 8pt; padding: 4px; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+
+        /* Resumo Financeiro em destaque */
+        .resumo-final .col { text-align: center; padding: 10px 4px; }
+        .resumo-final .t-value { font-size: 11pt; }
+        .resumo-final .destaque { background: #e8f5e9; }
+        .resumo-final .destaque .t-value { color: #1b5e20; }
+
+        /* Botão Flutuante (Some na impressão) */
+        .btn-imprimir {
+            position: fixed; top: 20px; right: 20px;
+            background: #2e7d32; color: white; border: none;
+            padding: 12px 24px; font-size: 14px; border-radius: 4px;
+            cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .btn-imprimir:hover { background: #1b5e20; }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .page { box-shadow: none; width: 100%; margin: 0; padding: 0; }
+            .btn-imprimir { display: none !important; }
+        }
+    </style>
+</head>
+<body onload="window.print()">
+
+    <button class="btn-imprimir" onclick="window.print()">🖨️ Salvar PDF / Imprimir</button>
+
+    <div class="page">
+
+        <!-- Cabeçalho Principal -->
+        <div class="row" style="border-bottom: 1px solid #000;">
+            <!-- Emitente -->
+            <div class="col header-emitente">
+                <div style="font-weight: bold; font-size: 12pt; margin-bottom: 5px;">{{ emitente.nome_fantasia }}</div>
+                <div style="font-size: 8pt;">
+                    {{ emitente.razao_social }}<br>
+                    <span style="font-size: 7pt; display: block; margin-top: 5px;">
+                        {{ emitente.endereco_linha1 }}<br>
+                        {{ emitente.endereco_linha2 }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Box Relatório -->
+            <div class="col header-relatorio">
+                <div style="font-size: 12pt; font-weight: bold;">RELATÓRIO</div>
+                <div style="font-size: 7pt; margin-bottom: 5px;">Extrato Consolidado<br>do Cooperado</div>
+                <div class="relatorio-box">
+                    <div style="font-size: 8pt;">TIPO</div>
+                    <div style="font-size: 9pt; font-weight: bold;">Resumo de Entregas</div>
+                </div>
+                <div style="font-size: 8pt; font-weight: bold; margin-top: 5px;">CÓD. {{ fornecedor.id }}</div>
+            </div>
+
+            <!-- Emissão -->
+            <div class="col header-codigo">
+                <div class="t-label">DATA DE EMISSÃO DO RELATÓRIO</div>
+                <div class="t-value">{{ data_emissao }}</div>
+                <div class="t-label" style="margin-top: 10px;">PERÍODO</div>
+                <div class="t-value" style="font-size: 8pt;">{{ periodo or 'Histórico completo' }}</div>
+                <div class="t-label" style="text-align: center; margin-top: 10px; font-size: 7pt;">
+                    Documento gerado internamente pelo sistema PLANTAR,<br>sem valor fiscal.
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col" style="width: 50%;"><div class="t-label">NATUREZA DO DOCUMENTO</div><div class="t-value">RESUMO DE ENTREGAS E PAGAMENTOS DO COOPERADO</div></div>
+            <div class="col" style="width: 50%;"><div class="t-label">GERADO POR</div><div class="t-value">SISTEMA PLANTAR</div></div>
+        </div>
+
+        <!-- Dados do Cooperado -->
+        <div class="section-title">COOPERADO</div>
+        <div class="row">
+            <div class="col" style="width: 60%;"><div class="t-label">NOME</div><div class="t-value">{{ fornecedor.nome }}</div></div>
+            <div class="col" style="width: 20%;"><div class="t-label">CPF/CNPJ</div><div class="t-value">{{ fornecedor.cpf_cnpj or '-' }}</div></div>
+            <div class="col" style="width: 20%;"><div class="t-label">CIDADE</div><div class="t-value">{{ fornecedor.cidade or '-' }}</div></div>
+        </div>
+
+        <!-- Histórico de Entregas -->
+        <div class="section-title">HISTÓRICO DE ENTREGAS E PAGAMENTOS</div>
+        <table class="table-container">
+            <thead>
+                <tr>
+                    <th>DATA</th>
+                    <th>NOTA VINC.</th>
+                    <th>PREFEITURA / CLIENTE</th>
+                    <th>PRODUTO</th>
+                    <th class="text-right">PESO (KG)</th>
+                    <th class="text-right">VLR. COMPRA</th>
+                    <th class="text-right">VLR. LÍQUIDO</th>
+                    <th class="text-center">STATUS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in pagamentos %}
+                <tr>
+                    <td>{{ p.data_emissao }}</td>
+                    <td>{{ p.nota_vinculada or '-' }}</td>
+                    <td>{{ p.cliente_nome or '-' }}</td>
+                    <td>{{ p.produto_descricao or '-' }}</td>
+                    <td class="text-right">{{ "%.2f"|format(p.peso_liquido or 0) }}</td>
+                    <td class="text-right">{{ "%.2f"|format(p.valor_compra or 0) }}</td>
+                    <td class="text-right">{{ "%.2f"|format(p.valor_liquido or 0) }}</td>
+                    <td class="text-center">{{ p.status | capitalize }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center">Nenhuma entrega registrada para este cooperado ainda.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Resumo Financeiro -->
+        <div class="section-title">RESUMO FINANCEIRO</div>
+        <div class="row resumo-final">
+            <div class="col" style="width: 20%;"><div class="t-label">Cota</div><div class="t-value">R$ {{ "%.2f"|format(resumo.cota or 0) }}</div></div>
+            <div class="col" style="width: 20%;"><div class="t-label">Total Bruto</div><div class="t-value">R$ {{ "%.2f"|format(resumo.total_bruto or 0) }}</div></div>
+            <div class="col" style="width: 20%;"><div class="t-label">Descontos</div><div class="t-value" style="color:#c62828">- R$ {{ "%.2f"|format(resumo.total_descontos or 0) }}</div></div>
+            <div class="col destaque" style="width: 20%;"><div class="t-label">Total Líquido</div><div class="t-value">R$ {{ "%.2f"|format(resumo.total_liquido or 0) }}</div></div>
+            <div class="col destaque" style="width: 20%;"><div class="t-label">Saldo a Receber</div><div class="t-value">R$ {{ "%.2f"|format(resumo.total_a_pagar or 0) }}</div></div>
+        </div>
+
+        <!-- Dados Adicionais -->
+        <div class="section-title">DADOS ADICIONAIS</div>
+        <div class="row" style="height: 100px; border-bottom: 1px solid #000;">
+            <div class="col" style="width: 100%;">
+                <div class="t-label">INFORMAÇÕES COMPLEMENTARES</div>
+                <div style="font-size: 8pt; margin-top: 5px;">
+                    Total de {{ pagamentos|length }} entrega(s) registrada(s) neste relatório.<br><br>
+                    Este documento é um resumo consolidado, gerado a partir dos lançamentos de notas fiscais e
+                    pagamentos vinculados ao cooperado, e não substitui o extrato oficial de cada nota fiscal individual.
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

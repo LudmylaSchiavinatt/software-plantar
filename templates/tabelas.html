@@ -6,81 +6,293 @@
     <title>PLANTAR - Tabelas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
     <style>
+        .filtro-drawer { position: fixed; top: 0; right: -350px; width: 350px; height: 100vh; background: #fff; box-shadow: -4px 0 15px rgba(0,0,0,0.2); z-index: 999; transition: 0.3s; display: flex; flex-direction: column; }
+        .filtro-drawer.open { right: 0; }
+        .filtro-header, .filtro-footer { padding: 15px; border-bottom: 1px solid #eee; }
+        #filtroConteudo { padding: 15px; overflow-y: auto; }
+        
         :root { --sidebar-w:260px; --primary:#2e7d32; --bg:#f5f6fa; }
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:var(--bg); }
-
-        .sidebar {
-            position:fixed; top:0; left:0; width:var(--sidebar-w); height:100vh;
-            background:linear-gradient(180deg,#1a2332 0%,#0f1923 100%);
-            color:#fff; z-index:100; display:flex; flex-direction:column;
-            box-shadow:4px 0 20px rgba(0,0,0,.15);
-        }
+        .sidebar { position:fixed; top:0; left:0; width:var(--sidebar-w); height:100vh; background:linear-gradient(180deg,#1a2332 0%,#0f1923 100%); color:#fff; z-index:100; display:flex; flex-direction:column; box-shadow:4px 0 20px rgba(0,0,0,.15); }
         .sidebar-brand { padding:24px 20px; border-bottom:1px solid rgba(255,255,255,.06); font-size:1.2rem; font-weight:800; }
         .sidebar-brand i { color:#4caf50; margin-right:6px; }
         .sidebar-nav { flex:1; padding:16px 0; overflow-y:auto; }
         .sidebar-section { padding:6px 20px; font-size:.7rem; text-transform:uppercase; letter-spacing:2px; color:rgba(255,255,255,.3); margin-top:16px; }
-        .sidebar-link {
-            display:flex; align-items:center; gap:12px; padding:11px 20px;
-            color:rgba(255,255,255,.6); text-decoration:none; font-size:.92rem;
-            transition:all .2s; border-left:3px solid transparent;
-        }
+        .sidebar-link { display:flex; align-items:center; gap:12px; padding:11px 20px; color:rgba(255,255,255,.6); text-decoration:none; font-size:.92rem; transition:all .2s; border-left:3px solid transparent; }
         .sidebar-link:hover { color:#fff; background:rgba(255,255,255,.05); }
         .sidebar-link.active { color:#fff; background:rgba(76,175,80,.12); border-left-color:#4caf50; font-weight:600; }
         .sidebar-link i { font-size:1.1rem; width:22px; text-align:center; }
         .sidebar-footer { padding:16px 20px; border-top:1px solid rgba(255,255,255,.06); font-size:.78rem; color:rgba(255,255,255,.25); }
-
         .main { margin-left:var(--sidebar-w); min-height:100vh; }
-        .topbar {
-            background:#fff; padding:16px 28px; display:flex; align-items:center; justify-content:space-between;
-            box-shadow:0 1px 4px rgba(0,0,0,.06); position:sticky; top:0; z-index:50;
-        }
+        .topbar { background:#fff; padding:16px 28px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 1px 4px rgba(0,0,0,.06); position:sticky; top:0; z-index:50; }
         .topbar h1 { font-size:1.25rem; font-weight:700; color:#1a2332; margin:0; }
         .page-content { padding:28px; }
-
-        /* Tabs */
+        
         .tab-bar { display:flex; gap:4px; background:#fff; border-radius:12px; padding:6px; box-shadow:0 2px 8px rgba(0,0,0,.05); margin-bottom:24px; }
-        .tab-btn {
-            flex:1; padding:12px 8px; border:none; background:transparent; border-radius:8px;
-            font-weight:600; font-size:.88rem; color:#666; cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center; gap:6px;
-        }
+        .tab-btn { flex:1; padding:12px 8px; border:none; background:transparent; border-radius:8px; font-weight:600; font-size:.88rem; color:#666; cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center; gap:6px; }
         .tab-btn:hover { color:#1a2332; background:#f5f6fa; }
         .tab-btn.active { background:var(--primary); color:#fff; }
         .tab-section { display:none; }
         .tab-section.active { display:block; }
-
-        /* Table cards */
+        
         .tbl-card { background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.05); overflow:hidden; margin-bottom:24px; }
-        .tbl-card-header {
-            padding:16px 20px; font-weight:700; font-size:.95rem; border-bottom:1px solid #f0f0f0;
-            display:flex; align-items:center; justify-content:space-between;
-        }
+        .tbl-card-header { padding:16px 20px; font-weight:700; font-size:.95rem; border-bottom:1px solid #f0f0f0; display:flex; align-items:center; justify-content:space-between; }
         .tbl-card-header span { display:flex; align-items:center; gap:8px; }
         .tbl-card-body { padding:0; }
         .table { margin:0; font-size:.88rem; }
         .table thead th { background:#f8f9fa; font-weight:700; font-size:.78rem; text-transform:uppercase; letter-spacing:.5px; color:#555; padding:12px 16px; border:none; }
         .table tbody td { padding:10px 16px; vertical-align:middle; border-bottom:1px solid #f5f5f5; }
         .table-hover tbody tr:hover { background:rgba(76,175,80,.04); }
-        .badge-status { padding:4px 10px; border-radius:20px; font-weight:500; font-size:.75rem; }
+        
+        .badge-status { padding:4px 10px; border-radius:20px; font-weight:500; font-size:.75rem; text-transform: capitalize;}
         .badge-paga,.badge-pago { background:#c8e6c9; color:#1b5e20; }
         .badge-pendente,.badge-emitida { background:#fff3e0; color:#e65100; }
         .badge-cancelada,.badge-cancelado { background:#ffebee; color:#b71c1c; }
         .valor-negativo { color:#c62828; }
         .valor-positivo { color:#2e7d32; }
-
+        
         .search-box { background:#fff; padding:12px 20px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.05); margin-bottom:20px; display:flex; gap:12px; }
         .search-box input { flex:1; border:1px solid #e0e0e0; border-radius:8px; padding:8px 14px; font-size:.9rem; }
         .search-box input:focus { outline:none; border-color:#4caf50; }
         .search-box button { background:var(--primary); border:none; color:#fff; border-radius:8px; padding:8px 20px; font-weight:600; cursor:pointer; }
-
         .counter-badge { background:#e8f5e9; color:#2e7d32; padding:3px 10px; border-radius:12px; font-size:.78rem; font-weight:600; }
-
+        
         @media(max-width:768px) { .sidebar{width:0;overflow:hidden;} .main{margin-left:0;} }
+        .btn-verde{
+    background-color:#198754 !important;
+    border-color:#198754 !important;
+    color:#fff !important;
+}
+
+.btn-verde:hover{
+    background-color:#157347 !important;
+    border-color:#146c43 !important;
+}
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
+
+    <div class="modal fade" id="modalNovoCliente" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 id="tituloModalCliente">Novo Contrato</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="cad-cliente-id" value="">
+                    <label class="form-label">Nome da Prefeitura/Cliente *</label>
+                    <input type="text" id="cad-cliente-nome" class="form-control mb-3">
+                    <label class="form-label">Tipo</label>
+                    <select id="cad-cliente-tipo" class="form-select mb-3">
+                        <option value="prefeitura">Prefeitura</option>
+                        <option value="particular">Particular</option>
+                    </select>
+                    <label class="form-label">Cidade</label>
+                    <input type="text" id="cad-cliente-cidade" class="form-control mb-3">
+                    <label class="form-label">Valor Total do Contrato (R$)</label>
+                    <input type="number" step="0.01" id="cad-cliente-valor-contrato" class="form-control mb-3" value="0">
+
+                    <label class="form-label">Prazo de Pagamento (dias)</label>
+                    <input type="number" id="cad-cliente-prazo" class="form-control" value="30">
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-danger d-none" id="btn-excluir-cliente" onclick="excluirCliente()">Excluir</button>
+                   <button class="btn btn-success w-100" onclick="salvarCliente()">Cadastrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalNovoCooperado" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white"><h5 id="tituloModalCooperado">Novo Cooperado</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <input type="hidden" id="cad-cooperado-id" value="">
+                    <label class="form-label">Nome Completo *</label>
+                    <input type="text" id="cad-cooperado-nome" class="form-control mb-3">
+                    <label class="form-label">CPF/CNPJ</label>
+                    <input type="text" id="cad-cooperado-cpf" class="form-control mb-3">
+                    <label class="form-label">Cidade</label>
+                    <input type="text" id="cad-cooperado-cidade" class="form-control">
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-danger d-none" id="btn-excluir-cooperado" onclick="excluirFornecedor()">Excluir</button>
+                     <button class="btn btn-success w-100" onclick="salvarCooperado()">Cadastrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalNota" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5>Nota Fiscal</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_id">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label>Nº Nota</label>
+                            <input type="text" id="edit_numero" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label>Data</label>
+                            <input type="date" id="edit_data" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label>Cliente</label>
+                            <select id="edit_cliente" class="form-select"></select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Valor</label>
+                            <input type="number" id="edit_valor" class="form-control">
+                        </div>
+                        <div class="col-md-2">
+                            <label>Peso</label>
+                            <input type="number" id="edit_peso" class="form-control" value="0">
+                        </div>
+                        <div class="col-md-2">
+                            <label>Caixas</label>
+                            <input type="number" id="edit_caixas" class="form-control" value="0">
+                        </div>
+                        <div class="col-md-2">
+                            <label>Frete</label>
+                            <input type="number" id="edit_frete" class="form-control" value="0">
+                        </div>
+                        <div class="col-md-3">
+                            <label>Prev. Pagamento</label>
+                            <input type="date" id="edit_previsao" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label>Status</label>
+                            <select id="edit_status" class="form-select">
+                                <option value="emitida">Emitida</option>
+                                <option value="pendente">Pendente</option>
+                                <option value="paga">Paga</option>
+                                <option value="cancelada">Cancelada</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label>Observações</label>
+                            <textarea id="edit_obs" class="form-control"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success w-100" onclick="salvarNota()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalCusto" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header text-white" style="background:linear-gradient(135deg,#1565c0,#1e88e5);">
+                    <h5><i class="bi bi-calculator"></i> Lançar Custo / Desconto</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="background:#f5f6fa;">
+                    <form id="formCusto">
+                        <input type="hidden" id="edit_custo_id" value="">
+                        
+                        <div class="row g-3 bg-white p-3 rounded shadow-sm mb-3">
+                            <div class="col-md-4"><label class="form-label fw-bold">Nota Fiscal vinculada *</label><select class="form-select" id="custo-nota" required></select></div>
+                            <div class="col-md-4"><label class="form-label fw-bold">Fornecedor *</label><select class="form-select" id="custo-fornecedor" required></select></div>
+                            <div class="col-md-2"><label class="form-label fw-bold">Data *</label><input type="date" id="custo-data" class="form-control" required></div>
+                            <div class="col-md-2"><label class="form-label">Status</label><select id="custo-status" class="form-select"><option value="pendente">Pendente</option><option value="pago">Pago</option></select></div>
+                            
+                            <div class="col-md-3"><label class="form-label">Nº NF Fornecedor</label><input type="text" id="custo-nf-forn" class="form-control"></div>
+                            <div class="col-md-3"><label class="form-label fw-bold">Valor Compra Total (R$) *</label><input type="number" step="0.01" id="custo-valor-compra" class="form-control" required oninput="calcularDescontosAuto()"></div>
+                            <div class="col-md-6 d-flex align-items-end"><button type="button" class="btn btn-outline-primary" onclick="calcularDescontosAuto()"><i class="bi bi-calculator"></i> Re-calcular Descontos Base</button></div>
+                        </div>
+
+                        <div class="row g-3 bg-white p-3 rounded shadow-sm border border-success">
+                            <h6 class="text-success mb-0"><i class="bi bi-cart-plus"></i> Itens da Nota (Adicione 1 ou mais)</h6>
+                            <div class="col-md-5">
+                    <label class="form-label">Produto</label>
+                    <!-- Adicionado onchange para detectar quando "Outro" é selecionado -->
+                    <select class="form-select" id="custo-produto" onchange="verificarProdutoOutro()">
+                        <option value="">Selecione o produto...</option>
+                        <optgroup label="Hortaliças">
+                            <option>Alface Crespa</option>
+                            <option>Couve</option>
+                            <option>Repolho</option>
+                        </optgroup>
+                        <optgroup label="Legumes">
+                            <option>Tomate</option>
+                            <option>Cenoura</option>
+                            <option>Batata Doce</option>
+                        </optgroup>
+                        <optgroup label="Frutas">
+                            <option>Banana</option>
+                            <option>Laranja</option>
+                        </optgroup>
+                        <!-- Nova opção para produtos não listados -->
+                        <optgroup label="Outros">
+                            <option value="outro">+ Adicionar Novo Produto...</option>
+                        </optgroup>
+                    </select>
+                    
+                    <!-- Campo de texto oculto que só aparece se escolher "Outro" -->
+                    <input type="text" id="custo-produto-novo" class="form-control mt-2" style="display: none;" placeholder="Digite o nome do produto">
+                </div>
+                                            <div class="col-md-3">
+                                <label class="form-label">Peso Líq. (kg)</label>
+                                <input type="number" step="0.01" id="custo-peso" class="form-control" value="0">
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="button" class="btn btn-success w-100" onclick="adicionarProdutoLista()"><i class="bi bi-plus-circle"></i> Adicionar na Lista</button>
+                            </div>
+
+                            <div class="col-12 mt-3">
+                                <table class="table table-sm table-bordered mb-0">
+                                    <thead class="table-light">
+                                        <tr><th>Produto</th><th>Peso (kg)</th><th class="text-center" style="width: 80px;">Ação</th></tr>
+                                    </thead>
+                                    <tbody id="lista-produtos-body">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="desconto-group bg-light p-3 rounded mt-3 border">
+                            <h6 class="mb-3 text-muted">Detalhamento de Descontos (Aplicado ao Total)</h6>
+                            <div class="row g-2">
+                                <div class="col-md-2"><label class="small">Funrural 1,5%</label><input type="number" step="0.01" id="custo-funrural" class="form-control form-control-sm desconto-field" value="0"></div>
+                                <div class="col-md-2"><label class="small">Taxa Coop (%)</label><input type="number" step="0.01" id="custo-taxa-coop-pct" class="form-control form-control-sm" value="0" oninput="calcularDescontosAuto()"></div>
+                                <div class="col-md-2"><label class="small">Taxa Coop (R$)</label><input type="number" step="0.01" id="custo-taxa-coop" class="form-control form-control-sm desconto-field" value="0" readonly></div>
+                                <div class="col-md-2"><label class="small">Desc. AIPRO</label><input type="number" step="0.01" id="custo-desconto-aipro" class="form-control form-control-sm desconto-field" value="0"></div>
+                                <div class="col-md-2"><label class="small">Frete Coop</label><input type="number" step="0.01" id="custo-pg-frete-coop" class="form-control form-control-sm desconto-field" value="0"></div>
+                                <div class="col-md-2"><label class="small">Cx Papelão</label><input type="number" step="0.01" id="custo-pg-caixa-papelao" class="form-control form-control-sm desconto-field" value="0"></div>
+                                <div class="col-md-2"><label class="small">Adiantamento</label><input type="number" step="0.01" id="custo-adiantamento" class="form-control form-control-sm desconto-field" value="0"></div>
+                                <div class="col-md-2"><label class="small">Outros</label><input type="number" step="0.01" id="custo-descontos-outros" class="form-control form-control-sm desconto-field" value="0"></div>
+                            </div>
+                        </div>
+
+                        <div class="resumo-custos mt-3 p-3 rounded row" style="background:#e8f5e9;">
+                            <div class="col-md-4">Compra Total: <b id="resumo-compra">R$ 0,00</b></div>
+                            <div class="col-md-4 text-danger">Descontos Totais: <b id="resumo-descontos">R$ 0,00</b></div>
+                            <div class="col-md-4 text-success">Líquido: <b id="resumo-liquido">R$ 0,00</b></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('formCusto').reset(); atualizarResumo();">Limpar</button>
+                     <button type="button" button class="btn btn-success w-100" onclick="salvarCusto()">Salvar Custo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <aside class="sidebar">
         <div class="sidebar-brand"><i class="bi bi-flower2" style="color:#4caf50"></i> PLANTAR</div>
         <nav class="sidebar-nav">
@@ -89,7 +301,6 @@
             <div class="sidebar-section">Painel</div>
             <a href="/painel/graficos" class="sidebar-link"><i class="bi bi-bar-chart-line"></i> Gráficos</a>
             <a href="/painel/tabelas" class="sidebar-link active"><i class="bi bi-table"></i> Tabelas</a>
-            <a href="/painel/cadastros" class="sidebar-link"><i class="bi bi-plus-circle"></i> Cadastros</a>
             <a href="/painel/visualizador" class="sidebar-link"><i class="bi bi-grid-3x3"></i> Visualizador BD</a>
             <div class="sidebar-section">Dados</div>
             <a href="/painel/tabelas#prefeituras" class="sidebar-link" onclick="switchTab('prefeituras')"><i class="bi bi-building"></i> Prefeituras</a>
@@ -111,7 +322,6 @@
         </div>
     </aside>
 
-    <!-- Main Content -->
     <div class="main">
         <div class="topbar">
             <div>
@@ -124,169 +334,1178 @@
         </div>
 
         <div class="page-content">
-            <!-- Search -->
             <div class="search-box">
                 <input type="text" id="busca" placeholder="Buscar em todas as tabelas...">
-                <button onclick="filtrar()"><i class="bi bi-search"></i> Buscar</button>
+                <button type="button" onclick="filtrar()"><i class="bi bi-search"></i> Buscar</button>
             </div>
 
-            <!-- Tabs -->
             <div class="tab-bar">
-                <button class="tab-btn active" data-tab="prefeituras" onclick="switchTab('prefeituras')"><i class="bi bi-building"></i> Prefeituras</button>
-                <button class="tab-btn" data-tab="fornecedores" onclick="switchTab('fornecedores')"><i class="bi bi-truck"></i> Fornecedores</button>
+                <button class="tab-btn active" data-tab="prefeituras" onclick="switchTab('prefeituras')"><i class="bi bi-building"></i> Contratos/Clientes/Prefeituras</button>
                 <button class="tab-btn" data-tab="notas" onclick="switchTab('notas')"><i class="bi bi-receipt"></i> Notas Fiscais</button>
+                <button class="tab-btn" data-tab="fornecedores" onclick="switchTab('fornecedores')"><i class="bi bi-truck"></i>Cooperados</button>
                 <button class="tab-btn" data-tab="pagamentos" onclick="switchTab('pagamentos')"><i class="bi bi-cash-coin"></i> Pagamentos</button>
             </div>
 
-            <!-- Prefeituras -->
             <div class="tab-section active" id="sec-prefeituras">
                 <div class="tbl-card">
                     <div class="tbl-card-header">
-                        <span><i class="bi bi-building"></i> Resultado por Prefeitura</span>
-                        <span class="counter-badge" id="cnt-pref">0 registros</span>
+                        <span><i class="bi bi-building"></i> Resultado por Contrato</span>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span class="counter-badge" id="cnt-pref">{{ prefeituras|length }} registros</span>
+                            <button class="btn btn-success btn-sm" onclick="abrirModalCliente()"><i class="bi bi-plus"></i> Novo Contrato</button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="abrirFiltro('prefeituras')"><i class="bi bi-funnel"></i></button>
+                        </div>
                     </div>
                     <div class="tbl-card-body table-responsive">
                         <table class="table table-hover" id="tbl-pref">
-                            <thead><tr>
-                                <th>Prefeitura</th><th>Cidade</th><th class="text-end">Notas</th>
-                                <th class="text-end">Total Contratos</th><th class="text-end">Recebido</th>
-                                <th class="text-end">A Receber</th><th class="text-end">Custos</th><th class="text-end">Resultado</th>
-                            </tr></thead><tbody></tbody>
+                            <thead>
+                                <tr>
+                                    <th>Prefeitura</th>
+                                    <th>Cidade</th>
+                                    <th class="text-end">Notas Emitidas</th>
+                                    <th class="text-end">Valor Total Contrato</th>
+                                    <th class="text-end">Valor Entregue Notas</th>
+                                    <th class="text-end">Valor Aberto Contrato</th>
+                                    <th class="text-end">Total Custos</th>
+                                    <th class="text-end">Resultado Líquido</th>
+                                    <th class="text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in prefeituras %}
+                                <tr>
+                                    <td>{{ p.prefeitura or '-' }}</td>
+                                    <td>{{ p.cidade or '-' }}</td>
+                                    <td class="text-end">{{ p.total_notas or 0 }}</td>
+                                    <td class="text-end">R$ {{ "%.2f"|format(p.valor_total_contratos)|replace('.',',') }}</td>
+                                    <td class="text-end">R$ {{ "%.2f"|format(p.valor_recebido)|replace('.',',') }}</td>
+                                    <td class="text-end">R$ {{ "%.2f"|format(p.valor_a_receber)|replace('.',',') }}</td>
+                                    <td class="text-end valor-negativo">R$ {{ "%.2f"|format(p.total_custos)|replace('.',',') }}</td>
+                                    <td class="text-end">R$ {{ "%.2f"|format(p.resultado_liquido)|replace('.',',') }}</td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-primary" onclick="editarCliente({{ p.id }})" title="Editar Contrato">✏️</button>
+                                        <button class="btn btn-sm btn-danger" onclick="excluirCliente({{ p.id }})" title="Excluir Contrato">🗑️</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- Fornecedores -->
             <div class="tab-section" id="sec-fornecedores">
                 <div class="tbl-card">
                     <div class="tbl-card-header">
-                        <span><i class="bi bi-truck"></i> Resumo por Fornecedor</span>
-                        <span class="counter-badge" id="cnt-forn">0 registros</span>
+                        <span><i class="bi bi-truck"></i> Resumo por Cooperado</span>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span class="counter-badge" id="cnt-forn">{{ fornecedores|length }} registros</span>
+                            <button class="btn btn-success btn-sm" onclick="abrirModalCooperado()"><i class="bi bi-plus"></i> Novo Cooperado</button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="abrirFiltro('fornecedores')"><i class="bi bi-funnel"></i></button>
+                        </div>
                     </div>
                     <div class="tbl-card-body table-responsive">
                         <table class="table table-hover" id="tbl-forn">
-                            <thead><tr>
-                                <th>Fornecedor</th><th class="text-end">Pagamentos</th><th class="text-end">Bruto</th>
-                                <th class="text-end">Descontos</th><th class="text-end">Líquido</th><th class="text-end">A Pagar</th>
-                            </tr></thead><tbody></tbody>
+                            <thead>
+                                <tr>
+                                    <th>Cooperado</th>
+                                    <th class="text-end">Limite do Contrato</th>
+                                    <th class="text-end">Saldo p/ Entrega</th>
+                                    <th class="text-end">Nº de Entregas</th>
+                                    <th class="text-end">Valor da Produção</th>
+                                    <th class="text-end">Taxas e Despesas</th>
+                                    <th class="text-end">Ganho Real</th>
+                                    <th class="text-end">Saldo a Receber</th>
+                                    <th class="text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for f in fornecedores %}
+                                <tr>
+                                    <td>{{ f.fornecedor or '-' }}</td>
+                                    <td class="text-end">R$ {{ "%.2f"|format(f.cota or 0)|replace('.',',') }}</td> 
+                                    <td class="text-end fw-bold {{ 'valor-negativo' if (f.saldo or 0) < 0 else 'valor-positivo' }}">R$ {{ "%.2f"|format(f.saldo or 0)|replace('.',',') }}</td> 
+                                    <td class="text-end">{{ f.total_pagamentos or 0 }}</td> 
+                                    <td class="text-end">R$ {{ "%.2f"|format(f.total_bruto or 0)|replace('.',',') }}</td> 
+                                    <td class="text-end valor-negativo">R$ {{ "%.2f"|format(f.total_descontos or 0)|replace('.',',') }}</td> 
+                                    <td class="text-end valor-positivo">R$ {{ "%.2f"|format(f.total_liquido or 0)|replace('.',',') }}</td> 
+                                    <td class="text-end fw-bold">R$ {{ "%.2f"|format(f.total_a_pagar or 0)|replace('.',',') }}</td> 
+                                  <td class="text-center">
+                                    <button class="btn btn-sm btn-secondary" onclick="window.open('/api/fornecedores/{{ f.id }}/relatorio', '_blank')" title="Gerar Relatório do Cooperado">📄</button>
+                                    <button class="btn btn-sm btn-primary" onclick="editarFornecedor({{ f.id }})" title="Editar Cooperado">✏️</button>
+                                    <button class="btn btn-sm btn-danger" onclick="excluirFornecedor({{ f.id }})" title="Excluir Cooperado">🗑️</button>
+                                </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- Notas Fiscais -->
             <div class="tab-section" id="sec-notas">
                 <div class="tbl-card">
                     <div class="tbl-card-header">
                         <span><i class="bi bi-receipt"></i> Notas Fiscais</span>
-                        <span class="counter-badge" id="cnt-notas">0 registros</span>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <label class="btn btn-outline-success btn-sm mb-0">
+                                <i class="bi bi-upload"></i>
+                                <input type="file" accept=".xlsx,.csv" onchange="uploadExcel(this)" hidden>
+                            </label>
+                            <button class="btn btn-success btn-sm" onclick="abrirNovaNota()"><i class="bi bi-plus"></i> Lançar Nota</button>
+                            <span class="counter-badge" id="cnt-notas">{{ notas|length }} registros</span>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="abrirFiltro('notas')"><i class="bi bi-funnel"></i></button>
+                        </div>
                     </div>
                     <div class="tbl-card-body table-responsive">
                         <table class="table table-hover" id="tbl-notas">
-                            <thead><tr>
-                                <th>Nº Nota</th><th>Cliente</th><th>Data</th><th class="text-end">Valor NF</th>
-                                <th class="text-end">Custos</th><th class="text-end">Líquido</th><th>Status</th>
-                            </tr></thead><tbody></tbody>
+                            <thead>
+                                <tr>
+                                    <th>Nº Nota</th>
+                                    <th>Cliente</th>
+                                    <th>Data</th>
+                                    <th class="text-end">Valor NF</th>
+                                    <th class="text-end">Custos</th>
+                                    <th class="text-end">Líquido</th>
+                                    <th>Status</th>
+                                    <th class="text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for n in notas %}
+                                <tr>
+                                    <td>{{ n.numero_nota or '-' }}</td>
+                                    <td>{{ n.cliente_nome or '-' }}</td>
+                                    <td>{{ n.data_emissao }}</td>
+                                    <td class="text-end">R$ {{ "%.2f"|format(n.valor_total or 0)|replace('.',',') }}</td>
+                                    <td class="text-end">R$ {{ "%.2f"|format(n.total_custos or 0)|replace('.',',') }}</td>
+                                    <td class="text-end">R$ {{ "%.2f"|format(n.valor_liquido_nota or 0)|replace('.',',') }}</td>
+                                    <td><span class="badge-status badge-{{ n.status|default('')|lower }}">{{ n.status or '-' }}</span></td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-secondary" onclick="window.open('/api/notas/{{ n.id }}/relatorio', '_blank')" title="Gerar Relatório">📄</button>
+                                        <button class="btn btn-sm btn-primary" onclick="editarNota({{ n.id }})">✏️</button>
+                                        <button class="btn btn-sm btn-danger" onclick="excluirNota({{ n.id }})">🗑️</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-section" id="sec-pagamentos">
+                <div class="tbl-card">
+                    <div class="tbl-card-header">
+                        <span><i class="bi bi-cash-coin"></i> Pagamentos a Fornecedores</span>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <label class="btn btn-outline-success btn-sm mb-0">
+                                <i class="bi bi-upload"></i> Importar
+                                <input type="file" accept=".xlsx,.csv" onchange="uploadExcelPagamentos(this)" hidden>
+                            </label>
+                            <button class="btn btn-success btn-sm" onclick="abrirModalCusto()"><i class="bi bi-plus"></i> Novo Custo</button>
+                            <span class="counter-badge" id="cnt-pag">{{ pagamentos|length }} registros</span>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="abrirFiltro('pagamentos')"><i class="bi bi-funnel"></i></button>
+                        </div>
+                    </div>
+                    <div class="tbl-card-body table-responsive">
+                        <table class="table table-hover" id="tbl-pag">
+                            <thead>
+                                <tr>
+                                    <th>Fornecedor</th>
+                                    <th>Nota Vinc.</th>
+                                    <th>Produto</th>
+                                    <th>Data</th>
+                                    <th class="text-end">Compra</th>
+                                    <th class="text-end">Líquido</th>
+                                    <th>Status</th>
+                                    <th class="text-center">Ações</th> </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in pagamentos %}
+                                <tr>
+                                    <td>{{ p.fornecedor_nome or '-' }}</td>
+                                    <td>{{ p.nota_vinculada or '-' }}</td>
+                                    <td>{{ p.produto_descricao or '-' }}</td>
+                                    <td>{{ p.data_emissao }}</td>
+                                    <td class="text-end">R$ {{ "%.2f"|format(p.valor_compra or 0)|replace('.',',') }}</td>
+                                    <td class="text-end">R$ {{ "%.2f"|format(p.valor_liquido or 0)|replace('.',',') }}</td>
+                                    <td><span class="badge-status badge-{{ p.status|default('')|lower }}">{{ p.status or '-' }}</span></td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-primary" onclick="editarCusto({{ p.id }})" title="Editar Pagamento">✏️</button>
+                                        <button class="btn btn-sm btn-danger" onclick="excluirCusto({{ p.id }})" title="Excluir Pagamento">🗑️</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- Pagamentos -->
-            <div class="tab-section" id="sec-pagamentos">
-                <div class="tbl-card">
-                    <div class="tbl-card-header">
-                        <span><i class="bi bi-cash-coin"></i> Pagamentos a Fornecedores</span>
-                        <span class="counter-badge" id="cnt-pag">0 registros</span>
-                    </div>
-                    <div class="tbl-card-body table-responsive">
-                        <table class="table table-hover" id="tbl-pag">
-                            <thead><tr>
-                                <th>Fornecedor</th><th>Nota Vinc.</th><th>Produto</th><th>Data</th>
-                                <th class="text-end">Compra</th><th class="text-end">Líquido</th><th>Status</th>
-                            </tr></thead><tbody></tbody>
-                        </table>
-                    </div>
+            <div id="filtroDrawer" class="filtro-drawer">
+                <div class="filtro-header d-flex justify-content-between">
+                    <h5>Filtros</h5>
+                    <button type="button" class="btn btn-sm btn-light" onclick="fecharFiltro()">✖</button>
+                </div>
+                <div id="filtroConteudo"></div>
+                <div class="filtro-footer d-flex gap-2">
+                    <button type="button" class="btn btn-secondary w-50" onclick="limparFiltros()">Limpar</button>
+                    <button type="button" class="btn btn-success w-50" onclick="aplicarFiltros()">Aplicar</button>
                 </div>
             </div>
         </div>
     </div>
 
+    <style>
+    /* ── Toast Notification ── */
+    #toast-container {
+        position: fixed;
+        top: 20px;
+        right: 24px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        pointer-events: none;
+    }
+    .toast-notif {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        min-width: 300px;
+        max-width: 420px;
+        padding: 14px 18px;
+        border-radius: 12px;
+        box-shadow: 0 6px 24px rgba(0,0,0,.18);
+        font-size: .92rem;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        pointer-events: all;
+        animation: toastIn .3s ease;
+        transition: opacity .4s, transform .4s;
+        word-break: break-word;
+    }
+    .toast-notif.hide { opacity: 0; transform: translateX(30px); }
+    .toast-notif.success { background: #e8f5e9; border-left: 5px solid #2e7d32; color: #1b5e20; }
+    .toast-notif.error   { background: #ffebee; border-left: 5px solid #c62828; color: #7f0000; }
+    .toast-notif.warning { background: #fff8e1; border-left: 5px solid #f57f17; color: #4e3a00; }
+    .toast-notif .toast-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 1px; }
+    .toast-notif .toast-msg  { flex: 1; line-height: 1.45; }
+    .toast-notif .toast-close {
+        background: none; border: none; cursor: pointer;
+        font-size: 1.1rem; line-height: 1; opacity: .5;
+        padding: 0; color: inherit; flex-shrink: 0;
+    }
+    .toast-notif .toast-close:hover { opacity: 1; }
+    @keyframes toastIn {
+        from { opacity: 0; transform: translateX(30px); }
+        to   { opacity: 1; transform: translateX(0); }
+    }
+    </style>
+
+    <div id="toast-container"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
-    async function uploadBD(input) {
-        const file = input.files[0]; if(!file) return;
-        if(!confirm(`Substituir o banco pelo arquivo "${file.name}"?\nFaça backup antes!`)) { input.value=''; return; }
-        const form = new FormData(); form.append('arquivo', file);
-        const res = await fetch('/api/banco/upload',{method:'POST',body:form});
-        const data = await res.json();
-        alert(res.ok ? data.mensagem : 'Erro: '+data.erro);
-        if(res.ok) location.reload();
-        input.value='';
-    }
-    const fmt = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
-    const dt = v => v ? new Date(v).toLocaleDateString('pt-BR') : '-';
+function showToast(message, type) {
+    const icons = { success: '✅', error: '❌', warning: '⚠️' };
+    const container = document.getElementById('toast-container');
+    const el = document.createElement('div');
+    el.className = 'toast-notif ' + (type || 'success');
+    el.innerHTML = `
+        <span class="toast-icon">${icons[type] || '✅'}</span>
+        <span class="toast-msg">${message}</span>
+        <button class="toast-close" onclick="this.closest('.toast-notif').remove()">✕</button>
+    `;
+    container.appendChild(el);
+    const timeout = 60000;
+    setTimeout(() => {
+        el.classList.add('hide');
+        setTimeout(() => el.remove(), 420);
+    }, timeout);
+}
 
-    function switchTab(tab) {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
-        document.querySelectorAll('.tab-section').forEach(s => s.classList.toggle('active', s.id==='sec-'+tab));
-        // Atualizar sidebar
-        document.querySelectorAll('.sidebar-nav .sidebar-link').forEach(a => {
-            if(a.getAttribute('href')?.includes('#')) {
-                a.classList.toggle('active', a.getAttribute('href').endsWith('#'+tab));
+let listaItensCusto = []; 
+
+//  Abre o modal e zera tudo
+async function abrirModalCusto() {
+    document.getElementById('formCusto').reset();
+    document.getElementById('edit_custo_id').value = ''; // Limpa ID de Edição
+    document.getElementById('custo-data').value = new Date().toISOString().split('T')[0];
+    
+    listaItensCusto = [];
+    renderizarTabelaItens();
+    
+    const [notas, forns] = await Promise.all([
+        fetch('/api/notas_lista').then(r => r.json()),
+        fetch('/api/fornecedores_lista').then(r => r.json())
+    ]);
+
+    document.getElementById('custo-nota').innerHTML = '<option value="">Selecione a nota...</option>' + 
+        notas.map(n => `<option value="${n.id}">${n.numero_nota} - ${n.cliente_nome}</option>`).join('');
+
+    document.getElementById('custo-fornecedor').innerHTML = '<option value="">Selecione...</option>' + 
+        forns.map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
+
+    atualizarResumo();
+    new bootstrap.Modal(document.getElementById('modalCusto')).show();
+}
+
+function adicionarProdutoLista() {
+    const select = document.getElementById('custo-produto');
+    const inputNovo = document.getElementById('custo-produto-novo');
+    let prod = select.value;
+    const peso = document.getElementById('custo-peso').value;
+
+    // Se o usuário escolheu a opção de digitar um novo, pega o valor do input de texto
+    if (prod === 'outro') {
+        prod = inputNovo.value.trim();
+    }
+
+    if(!prod) {
+        showToast("Selecione ou digite um produto para adicionar!", "warning");
+        return;
+    }
+
+    listaItensCusto.push({ produto: prod, peso: peso });
+    renderizarTabelaItens();
+
+    // Reseta os campos para o estado original
+    select.value = '';
+    inputNovo.value = '';
+    inputNovo.style.display = 'none';
+    document.getElementById('custo-peso').value = '0';
+}
+function verificarProdutoOutro() {
+    const select = document.getElementById('custo-produto');
+    const inputNovo = document.getElementById('custo-produto-novo');
+    
+    if (select.value === 'outro') {
+        inputNovo.style.display = 'block'; // Mostra o campo
+        inputNovo.focus(); // Coloca o cursor piscando nele
+    } else {
+        inputNovo.style.display = 'none'; // Esconde o campo
+        inputNovo.value = ''; // Limpa o que estava digitado
+    }
+}
+function removerItemLista(index) {
+    listaItensCusto.splice(index, 1);
+    renderizarTabelaItens();
+}
+
+function renderizarTabelaItens() {
+    const tbody = document.getElementById('lista-produtos-body');
+    if(listaItensCusto.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Nenhum produto adicionado ainda.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = listaItensCusto.map((item, index) => `
+        <tr>
+            <td>${item.produto}</td>
+            <td>${item.peso}</td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-danger py-0 px-2" onclick="removerItemLista(${index})"><i class="bi bi-trash"></i></button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function calcularDescontosAuto() {
+    const vcompra = parseFloat(document.getElementById('custo-valor-compra').value) || 0;
+    const pctTaxa = parseFloat(document.getElementById('custo-taxa-coop-pct').value) || 0;
+
+    document.getElementById('custo-funrural').value = (vcompra * 0.015).toFixed(2);
+    document.getElementById('custo-taxa-coop').value = (vcompra * (pctTaxa / 100)).toFixed(2);
+    atualizarResumo();
+}
+
+function atualizarResumo() {
+    const vcompra = parseFloat(document.getElementById('custo-valor-compra').value) || 0;
+    let totalDescontos = 0;
+    document.querySelectorAll('.desconto-field').forEach(el => {
+        totalDescontos += parseFloat(el.value) || 0;
+    });
+
+    const vliquido = vcompra - totalDescontos;
+    document.getElementById('resumo-compra').textContent = fmt(vcompra);
+    document.getElementById('resumo-descontos').textContent = '- ' + fmt(totalDescontos);
+    document.getElementById('resumo-liquido').textContent = fmt(vliquido);
+}
+
+// novo salvarCusto inteligente (Suporta criação múltipla com Rateio por Peso OU Atualização do CRUD)
+async function salvarCusto() {
+    if(listaItensCusto.length === 0) {
+        showToast("Adicione pelo menos um produto na lista antes de salvar!", "warning");
+        return;
+    }
+
+    // 1. Trava de Segurança Matemática contra Saldos Negativos
+    const vcompraTotal = parseFloat(document.getElementById('custo-valor-compra').value) || 0;
+    let descontosTotais = 0;
+    document.querySelectorAll('.desconto-field').forEach(el => {
+        descontosTotais += parseFloat(el.value) || 0;
+    });
+
+    if (descontosTotais > vcompraTotal) {
+        showToast("ERRO: O total de descontos (R$ " + descontosTotais.toFixed(2) + ") não pode ser maior que o valor da compra (R$ " + vcompraTotal.toFixed(2) + "). Ajuste os valores.", "error");
+        return; 
+    }
+
+    // 2. Cálculo do Peso Acumulado para Distribuição Justa
+    let pesoTotal = 0;
+    for (let item of listaItensCusto) {
+        pesoTotal += parseFloat(item.peso) || 0;
+    }
+
+    if (pesoTotal <= 0) {
+        showToast("ERRO: O peso total dos produtos inseridos deve ser maior que zero.", "error");
+        return;
+    }
+
+    const getFieldGlobal = (id) => {
+        const el = document.getElementById(id);
+        return el ? parseFloat(el.value) || 0 : 0;
+    };
+
+    const globais = {
+        vcompra: getFieldGlobal('custo-valor-compra'),
+        funrural: getFieldGlobal('custo-funrural'),
+        taxa_cooperativa: getFieldGlobal('custo-taxa-coop'),
+        desconto_aipro: getFieldGlobal('custo-desconto-aipro'),
+        pg_frete_coop: getFieldGlobal('custo-pg-frete-coop'),
+        pg_caixa_papelao: getFieldGlobal('custo-pg-caixa-papelao'),
+        adiantamento: getFieldGlobal('custo-adiantamento'),
+        descontos_outros: getFieldGlobal('custo-descontos-outros')
+    };
+
+    const nota_id = document.getElementById('custo-nota').value;
+    const fornecedor_id = document.getElementById('custo-fornecedor').value;
+    const editCustoId = document.getElementById('edit_custo_id').value;
+
+    if (!nota_id || !fornecedor_id || vcompraTotal <= 0) {
+        showToast("Preencha Nota, Fornecedor e Valor da Compra!", "warning");
+        return;
+    }
+
+    try {
+        // Se houver um ID ativo no ecrã, fazemos uma operação PUT (Edição de 1 item)
+        if (editCustoId) {
+            const item = listaItensCusto[0];
+            const body = {
+                nota_id: nota_id,
+                fornecedor_id: fornecedor_id,
+                data_emissao: document.getElementById('custo-data').value,
+                numero_nota_fornecedor: document.getElementById('custo-nf-forn').value,
+                status: document.getElementById('custo-status').value,
+                produto_descricao: item.produto,
+                peso_liquido: parseFloat(item.peso).toFixed(2),
+                valor_compra: globais.vcompra.toFixed(2),
+                funrural: globais.funrural.toFixed(2),
+                taxa_cooperativa: globais.taxa_cooperativa.toFixed(2),
+                desconto_aipro: globais.desconto_aipro.toFixed(2),
+                pg_frete_coop: globais.pg_frete_coop.toFixed(2),
+                pg_caixa_papelao: globais.pg_caixa_papelao.toFixed(2),
+                adiantamento: globais.adiantamento.toFixed(2),
+                descontos_outros: globais.descontos_outros.toFixed(2)
+            };
+
+            const res = await fetch(`/api/custos/detalhe/${editCustoId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            if (!res.ok) throw new Error("Erro ao atualizar o registo.");
+            showToast("Custo atualizado com sucesso!", "success");
+        } 
+        // Caso contrário, roda o loop clássico de inserção múltipla distribuindo pelo peso (POST)
+        else {
+            for (let i = 0; i < listaItensCusto.length; i++) {
+                const item = listaItensCusto[i];
+                const pesoItem = parseFloat(item.peso) || 0;
+                const proporcao = pesoItem / pesoTotal;
+                const ratear = (valorGlobal) => (valorGlobal * proporcao).toFixed(2);
+
+                const body = {
+                    nota_id: nota_id,
+                    fornecedor_id: fornecedor_id,
+                    data_emissao: document.getElementById('custo-data').value,
+                    numero_nota_fornecedor: document.getElementById('custo-nf-forn').value,
+                    status: document.getElementById('custo-status').value,
+                    produto_descricao: item.produto,
+                    peso_liquido: pesoItem.toFixed(2),
+                    valor_compra: ratear(globais.vcompra),
+                    funrural: ratear(globais.funrural),
+                    taxa_cooperativa: ratear(globais.taxa_cooperativa),
+                    desconto_aipro: ratear(globais.desconto_aipro),
+                    pg_frete_coop: ratear(globais.pg_frete_coop),
+                    pg_caixa_papelao: ratear(globais.pg_caixa_papelao),
+                    adiantamento: ratear(globais.adiantamento),
+                    descontos_outros: ratear(globais.descontos_outros)
+                };
+
+                const res = await fetch('/api/custos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                if (!res.ok) throw new Error("Falha ao salvar o produto: " + item.produto);
             }
-        });
-    }
+            showToast("Todos os produtos foram lançados com sucesso!", "success");
+        }
 
-    function filtrar() {
-        const q = document.getElementById('busca').value.toLowerCase();
-        document.querySelectorAll('.tab-section.active tbody tr').forEach(tr => {
-            tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
-        });
-    }
-    document.getElementById('busca').addEventListener('input', filtrar);
+        setTimeout(() => location.reload(), 2500);
 
-    async function load() {
-        const [prefs, forns, notas, pags] = await Promise.all([
-            fetch('/api/prefeituras').then(r=>r.json()),
-            fetch('/api/fornecedores').then(r=>r.json()),
-            fetch('/api/notas').then(r=>r.json()),
-            fetch('/api/pagamentos').then(r=>r.json()),
+    } catch(e) {
+        showToast("Erro no processo: " + e.message, "error");
+    }
+}
+
+// --- FUNÇÃO DO CRUD: BUSCAR E EDITAR CUSTO ---
+async function editarCusto(id) {
+    try {
+        document.getElementById('formCusto').reset();
+        document.getElementById('edit_custo_id').value = id;
+        listaItensCusto = []; 
+        
+        const [notas, forns] = await Promise.all([
+            fetch('/api/notas_lista').then(r => r.json()),
+            fetch('/api/fornecedores_lista').then(r => r.json())
         ]);
 
-        document.getElementById('cnt-pref').textContent = prefs.length+' registros';
-        document.querySelector('#tbl-pref tbody').innerHTML = prefs.map(p=>`
-            <tr><td class="fw-semibold">${p.prefeitura||'-'}</td><td>${p.cidade||'-'}</td><td class="text-end">${p.total_notas}</td>
-            <td class="text-end">${fmt(p.valor_total_contratos)}</td><td class="text-end">${fmt(p.valor_recebido)}</td>
-            <td class="text-end">${fmt(p.valor_a_receber)}</td><td class="text-end valor-negativo">${fmt(p.total_custos)}</td>
-            <td class="text-end fw-bold ${p.resultado_liquido>=0?'valor-positivo':'valor-negativo'}">${fmt(p.resultado_liquido)}</td></tr>`).join('');
+        document.getElementById('custo-nota').innerHTML = '<option value="">Selecione a nota...</option>' + 
+            notas.map(n => `<option value="${n.id}">${n.numero_nota} - ${n.cliente_nome}</option>`).join('');
 
-        document.getElementById('cnt-forn').textContent = forns.length+' registros';
-        document.querySelector('#tbl-forn tbody').innerHTML = forns.map(f=>`
-            <tr><td class="fw-semibold">${f.fornecedor}</td><td class="text-end">${f.total_pagamentos}</td>
-            <td class="text-end">${fmt(f.total_bruto)}</td><td class="text-end valor-negativo">${fmt(f.total_descontos)}</td>
-            <td class="text-end">${fmt(f.total_liquido)}</td><td class="text-end fw-bold">${fmt(f.total_a_pagar)}</td></tr>`).join('');
+        document.getElementById('custo-fornecedor').innerHTML = '<option value="">Selecione...</option>' + 
+            forns.map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
 
-        document.getElementById('cnt-notas').textContent = notas.length+' registros';
-        document.querySelector('#tbl-notas tbody').innerHTML = notas.map(n=>`
-            <tr><td class="fw-semibold">${n.numero_nota}</td><td>${n.cliente_nome}</td><td>${dt(n.data_emissao)}</td>
-            <td class="text-end">${fmt(n.valor_total)}</td><td class="text-end valor-negativo">${fmt(n.total_custos)}</td>
-            <td class="text-end fw-bold ${n.valor_liquido_nota>=0?'valor-positivo':'valor-negativo'}">${fmt(n.valor_liquido_nota)}</td>
-            <td><span class="badge-status badge-${n.status}">${n.status}</span></td></tr>`).join('');
+        // Tenta buscar o detalhe individual do custo
+        const res = await fetch(`/api/custos/detalhe/${id}`);
+        const c = await res.json();
 
-        document.getElementById('cnt-pag').textContent = pags.length+' registros';
-        document.querySelector('#tbl-pag tbody').innerHTML = pags.map(p=>`
-            <tr><td class="fw-semibold">${p.fornecedor_nome}</td><td>${p.nota_vinculada||'-'}</td><td>${p.produto_descricao||'-'}</td>
-            <td>${dt(p.data_emissao)}</td><td class="text-end">${fmt(p.valor_compra)}</td>
-            <td class="text-end">${fmt(p.valor_liquido)}</td>
-            <td><span class="badge-status badge-${p.status}">${p.status}</span></td></tr>`).join('');
+        if(!res.ok) throw new Error(c.erro || "Falha ao carregar dados do banco.");
 
-        // Check hash
-        const hash = location.hash.replace('#','');
-        if(hash && ['prefeituras','fornecedores','notas','pagamentos'].includes(hash)) switchTab(hash);
+        document.getElementById('custo-nota').value = c.nota_id;
+        document.getElementById('custo-fornecedor').value = c.fornecedor_id;
+        document.getElementById('custo-data').value = c.data_emissao;
+        document.getElementById('custo-nf-forn').value = c.numero_nota_fornecedor || '';
+        document.getElementById('custo-status').value = c.status;
+        
+        listaItensCusto.push({ produto: c.produto_descricao, peso: c.peso_liquido || 0 });
+        renderizarTabelaItens();
+
+        document.getElementById('custo-valor-compra').value = c.valor_compra;
+        document.getElementById('custo-funrural').value = c.funrural || 0;
+        document.getElementById('custo-desconto-aipro').value = c.desconto_aipro || 0;
+        document.getElementById('custo-pg-frete-coop').value = c.pg_frete_coop || 0;
+        document.getElementById('custo-pg-caixa-papelao').value = c.pg_caixa_papelao || 0;
+        document.getElementById('custo-adiantamento').value = c.adiantamento || 0;
+        document.getElementById('custo-descontos-outros').value = c.descontos_outros || 0;
+
+        atualizarResumo();
+        new bootstrap.Modal(document.getElementById('modalCusto')).show();
+
+    } catch (e) {
+        console.error(e);
+        showToast("Erro ao editar custo: " + e.message, "error");
     }
-    load();
+}
+
+// --- FUNÇÃO DO CRUD: EXCLUIR CUSTO ---
+async function excluirCusto(id) {
+    if (!confirm("Deseja realmente eliminar este custo/pagamento da base de dados?")) return;
+    
+    try {
+        const res = await fetch(`/api/custos/detalhe/${id}`, { method: 'DELETE' });
+        if (res.ok) { 
+            showToast("Registo eliminado com sucesso!", "success"); 
+            setTimeout(() => location.reload(), 2500); 
+        } else { 
+            const erro = await res.json();
+            showToast("Erro ao eliminar: " + (erro.erro || "Falha interna."), "error"); 
+        }
+    } catch (e) {
+        console.error(e);
+        showToast("Erro na ligação ao servidor.", "error");
+    }
+}
+
+async function carregarDropdowns() {
+    try {
+        const res = await fetch('/api/clientes_lista');
+        const clientes = await res.json();
+        document.getElementById('edit_cliente').innerHTML = clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+    } catch (e) { console.error(e); }
+}
+
+function fmt(v) {
+    return 'R$ ' + (v || 0).toFixed(2).replace('.', ',');
+}
+
+/* ============================================================
+   CRUD DE CLIENTES (Prefeituras) — agora chama endpoints reais
+   ============================================================ */
+
+function abrirModalCliente(id) {
+    const modalEl = document.getElementById('modalNovoCliente');
+    document.getElementById('cad-cliente-id').value = '';
+    document.getElementById('cad-cliente-nome').value = '';
+    document.getElementById('cad-cliente-tipo').value = 'prefeitura';
+    document.getElementById('cad-cliente-cidade').value = '';
+    document.getElementById('cad-cliente-valor-contrato').value = 0;
+    document.getElementById('cad-cliente-prazo').value = 30;
+    document.getElementById('tituloModalCliente').textContent = 'Novo Cliente';
+    document.getElementById('btn-excluir-cliente').classList.add('d-none');
+    new bootstrap.Modal(modalEl).show();
+}
+async function editarCliente(id) {
+    try {
+        const res = await fetch(`/api/clientes/${id}`);
+        if (!res.ok) throw new Error('Contrato não encontrado.');
+        const c = await res.json();
+
+        document.getElementById('cad-cliente-id').value = c.id;
+        document.getElementById('cad-cliente-nome').value = c.nome || '';
+        document.getElementById('cad-cliente-tipo').value = c.tipo || 'prefeitura';
+        document.getElementById('cad-cliente-cidade').value = c.cidade || '';
+        document.getElementById('cad-cliente-valor-contrato').value = c.valor_total_contrato || 0;
+        document.getElementById('cad-cliente-prazo').value = c.prazo_pagamento_dias || 30;
+        document.getElementById('tituloModalCliente').textContent = 'Editar Cliente';
+        document.getElementById('btn-excluir-cliente').classList.remove('d-none');
+
+        new bootstrap.Modal(document.getElementById('modalNovoCliente')).show();
+    } catch (e) {
+        showToast("Erro ao carregar cliente: " + e.message, "error");
+    }
+}
+
+async function salvarCliente() {
+    const id = document.getElementById('cad-cliente-id').value;
+    const nome = document.getElementById('cad-cliente-nome').value.trim();
+
+    if (!nome) {
+        showToast("Informe o nome do cliente!", "warning");
+        return;
+    }
+
+        const body = {
+            nome: nome,
+            tipo: document.getElementById('cad-cliente-tipo').value,
+            cidade: document.getElementById('cad-cliente-cidade').value.trim(),
+            valor_total_contrato: document.getElementById('cad-cliente-valor-contrato').value || 0,
+            prazo_pagamento_dias: document.getElementById('cad-cliente-prazo').value || 30
+        };
+    try {
+        const res = await fetch(id ? `/api/clientes/${id}` : '/api/clientes', {
+            method: id ? 'PUT' : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+
+        if (res.ok) {
+            showToast(id ? "Contrato atualizado!" : "Contrato cadastrado!", "success");
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            const erro = await res.json();
+            showToast("Erro: " + (erro.erro || "Falha ao salvar."), "error");
+        }
+    } catch (e) {
+        showToast("Erro na ligação ao servidor.", "error");
+    }
+}
+
+async function excluirCliente(idParam) {
+    const id = idParam || document.getElementById('cad-cliente-id').value;
+    if (!id) return;
+    if (!confirm("Deseja realmente excluir este cliente? Isso só é permitido se não houver notas fiscais vinculadas.")) return;
+
+    try {
+        const res = await fetch(`/api/clientes/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            showToast("Cliente excluído!", "success");
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            const erro = await res.json();
+            showToast("Erro ao excluir: " + (erro.erro || "Falha interna."), "error");
+        }
+    } catch (e) {
+        showToast("Erro na ligação ao servidor.", "error");
+    }
+}
+
+/* ============================================================
+   CRUD DE COOPERADOS (Fornecedores) — agora chama endpoints reais
+   ============================================================ */
+
+function abrirModalCooperado(id) {
+    const modalEl = document.getElementById('modalNovoCooperado');
+    document.getElementById('cad-cooperado-id').value = '';
+    document.getElementById('cad-cooperado-nome').value = '';
+    document.getElementById('cad-cooperado-cpf').value = '';
+    document.getElementById('cad-cooperado-cidade').value = '';
+    document.getElementById('tituloModalCooperado').textContent = 'Novo Cooperado';
+    document.getElementById('btn-excluir-cooperado').classList.add('d-none');
+    new bootstrap.Modal(modalEl).show();
+}
+
+async function editarFornecedor(id) {
+    try {
+        const res = await fetch(`/api/fornecedores/${id}`);
+        if (!res.ok) throw new Error('Cooperado não encontrado.');
+        const f = await res.json();
+
+        document.getElementById('cad-cooperado-id').value = f.id;
+        document.getElementById('cad-cooperado-nome').value = f.nome || '';
+        document.getElementById('cad-cooperado-cpf').value = f.cpf_cnpj || '';
+        document.getElementById('cad-cooperado-cidade').value = f.cidade || '';
+        document.getElementById('tituloModalCooperado').textContent = 'Editar Cooperado';
+        document.getElementById('btn-excluir-cooperado').classList.remove('d-none');
+
+        new bootstrap.Modal(document.getElementById('modalNovoCooperado')).show();
+    } catch (e) {
+        showToast("Erro ao carregar cooperado: " + e.message, "error");
+    }
+}
+
+async function salvarCooperado() {
+    const id = document.getElementById('cad-cooperado-id').value;
+    const nome = document.getElementById('cad-cooperado-nome').value.trim();
+
+    if (!nome) {
+        showToast("Informe o nome do cooperado!", "warning");
+        return;
+    }
+
+    const body = {
+        nome: nome,
+        cpf_cnpj: document.getElementById('cad-cooperado-cpf').value.trim(),
+        cidade: document.getElementById('cad-cooperado-cidade').value.trim()
+    };
+
+    try {
+        const res = await fetch(id ? `/api/fornecedores/${id}` : '/api/fornecedores', {
+            method: id ? 'PUT' : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+
+        if (res.ok) {
+            showToast(id ? "Cooperado atualizado!" : "Cooperado cadastrado!", "success");
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            const erro = await res.json();
+            showToast("Erro: " + (erro.erro || "Falha ao salvar."), "error");
+        }
+    } catch (e) {
+        showToast("Erro na ligação ao servidor.", "error");
+    }
+}
+
+async function excluirFornecedor(idParam) {
+    const id = idParam || document.getElementById('cad-cooperado-id').value;
+    if (!id) return;
+    if (!confirm("Deseja realmente excluir este cooperado? Isso só é permitido se não houver pagamentos vinculados.")) return;
+
+    try {
+        const res = await fetch(`/api/fornecedores/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            showToast("Cooperado excluído!", "success");
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            const erro = await res.json();
+            showToast("Erro ao excluir: " + (erro.erro || "Falha interna."), "error");
+        }
+    } catch (e) {
+        showToast("Erro na ligação ao servidor.", "error");
+    }
+}
+
+async function salvarNota() {
+    const body = {
+        numero_nota: document.getElementById('edit_numero').value,
+        data_emissao: document.getElementById('edit_data').value,
+        cliente_id: document.getElementById('edit_cliente').value,
+        valor_total: document.getElementById('edit_valor').value,
+        peso_liquido: document.getElementById('edit_peso').value,
+        quantidade_cx: document.getElementById('edit_caixas').value,
+        valor_frete: document.getElementById('edit_frete').value,
+        status: document.getElementById('edit_status').value,
+        observacoes: document.getElementById('edit_obs').value,
+        previsao_pagamento: document.getElementById('edit_previsao').value
+    };
+
+    if(!body.numero_nota || !body.data_emissao || !body.cliente_id || !body.valor_total){
+        showToast("Preencha os campos obrigatórios!", "warning");
+        return;
+    }
+
+    const id = document.getElementById('edit_id').value;
+
+    const res = await fetch(id ? `/api/notas/${id}` : '/api/notas', {
+        method: id ? 'PUT' : 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(body)
+    });
+
+    if(res.ok){
+        showToast("Salvo!", "success");
+        setTimeout(() => location.reload(), 2500);
+    } else {
+        const erro = await res.json();
+        showToast("Erro: " + erro.erro, "error");
+    }
+}
+
+async function uploadBD(input) {
+    const file = input.files[0]; 
+    if(!file) return;
+
+    if(!confirm(`Substituir o banco pelo arquivo "${file.name}"?\nFaça backup antes!`)) { 
+        input.value=''; 
+        return; 
+    }
+
+    const form = new FormData(); 
+    form.append('arquivo', file);
+
+    try {
+        const res = await fetch('/api/banco/upload',{method:'POST',body:form});
+        const data = await res.json();
+        showToast(res.ok ? data.mensagem : "Erro: " + data.erro, res.ok ? "success" : "error");
+        if(res.ok) setTimeout(() => location.reload(), 2500);
+    } catch(e) {
+        showToast("Erro no upload", "error");
+        console.error(e);
+    }
+    input.value='';
+}
+
+async function uploadExcel(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+
+    reader.onload = async function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(sheet, { raw: false });
+        const erros = validarNotas(json);
+
+        if (erros.length > 0) {
+            showToast(erros.join("<br>"), "error");
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/notas/importar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(json)
+            });
+            const resposta = await res.json();
+            if (res.ok) {
+                showToast("Importado com sucesso!", "success");
+                setTimeout(() => location.reload(), 2500);
+            } else {
+                showToast("Erro: " + resposta.erro, "error");
+            }
+        } catch (err) {
+            console.error(err);
+            showToast("Erro ao enviar dados", "error");
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function validarNotas(lista) {
+    const erros = [];
+    lista.forEach((n, i) => {
+        const linha = i + 2; 
+        const nomeCliente = n.cliente || n.cliente_nome;
+        if (!n.numero_nota) erros.push(`Linha ${linha}: número da nota obrigatório`);
+        if (!nomeCliente) erros.push(`Linha ${linha}: cliente obrigatório (nome da prefeitura)`);
+        if (!n.valor_total) erros.push(`Linha ${linha}: valor_total obrigatório`);
+        const statusValidos = ['paga', 'pendente', 'emitida', 'cancelada'];
+        if (n.status && !statusValidos.includes(String(n.status).toLowerCase())) {
+            erros.push(`Linha ${linha}: status inválido (${n.status})`);
+        }
+        if (!n.data_emissao) erros.push(`Linha ${linha}: data_emissao obrigatória`);
+    });
+    return erros;
+}
+
+async function uploadExcelPagamentos(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+
+    reader.onload = async function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(sheet, { raw: false });
+        
+        const erros = [];
+        json.forEach((p, i) => {
+            const linha = i + 2; 
+            const nomeForn = p.fornecedor || p.fornecedor_nome;
+            if (!nomeForn) erros.push(`Linha ${linha}: Fornecedor é obrigatório`);
+            if (!p.valor_compra && !p.bruto) erros.push(`Linha ${linha}: valor_compra é obrigatório`);
+            if (!p.data_emissao) erros.push(`Linha ${linha}: data_emissao é obrigatória`);
+        });
+
+        if (erros.length > 0) {
+            showToast(erros.join("<br>"), "error");
+            input.value = ''; 
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/pagamentos/importar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(json)
+            });
+            const resposta = await res.json();
+            
+            if (res.ok) {
+                showToast(resposta.mensagem, "success");
+                setTimeout(() => location.reload(), 2500);
+            } else {
+                showToast("Erros na importação: " + resposta.erro, "error");
+            }
+        } catch (err) {
+            console.error(err);
+            showToast("Erro ao comunicar com o servidor.", "error");
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function filtrar() {
+    const q = document.getElementById('busca').value.toLowerCase();
+    document.querySelectorAll('.tab-section.active tbody tr').forEach(tr => {
+        tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+
+async function excluirNota(id) {
+    if (!confirm("Deseja excluir essa nota?")) return;
+    const res = await fetch(`/api/notas/${id}`, { method: 'DELETE' });
+    if (res.ok) { showToast("Nota excluída!", "success"); setTimeout(() => location.reload(), 2500); } 
+    else { showToast("Erro ao excluir", "error"); }
+}
+
+async function abrirNovaNota() {
+    document.getElementById('edit_id').value = '';
+    document.getElementById('edit_numero').value = '';
+    document.getElementById('edit_valor').value = '';
+    document.getElementById('edit_obs').value = '';
+    
+    document.getElementById('edit_data').value = new Date().toISOString().split('T')[0]; 
+    document.getElementById('edit_peso').value = '0';
+    document.getElementById('edit_caixas').value = '0';
+    document.getElementById('edit_frete').value = '0';
+    document.getElementById('edit_previsao').value = '';
+    document.getElementById('edit_status').value = 'emitida';
+
+    await carregarDropdowns(); 
+
+    const meuModal = new bootstrap.Modal(document.getElementById('modalNota'));
+    meuModal.show();
+}
+
+async function editarNota(id) {
+    try {
+        const res = await fetch(`/api/notas/${id}`);
+        const n = await res.json();
+
+        document.getElementById('edit_id').value = n.id;
+        document.getElementById('edit_numero').value = n.numero_nota;
+        document.getElementById('edit_data').value = n.data_emissao;
+        document.getElementById('edit_valor').value = n.valor_total;
+        document.getElementById('edit_peso').value = n.peso_liquido || 0;
+        document.getElementById('edit_caixas').value = n.quantidade_cx || 0;
+        document.getElementById('edit_frete').value = n.valor_frete || 0;
+        document.getElementById('edit_status').value = n.status;
+        document.getElementById('edit_obs').value = n.observacoes || '';
+        document.getElementById('edit_previsao').value = n.previsao_pagamento || '';
+
+        await carregarDropdowns();
+        document.getElementById('edit_cliente').value = n.cliente_id;
+
+        new bootstrap.Modal(document.getElementById('modalNota')).show();
+    } catch (e) {
+        console.error(e);
+        showToast("Erro ao carregar dados", "error");
+    }
+}
+
+// ================= SISTEMA DE ABAS E FILTROS =================
+
+let tabelaAtual = 'prefeituras';
+
+function switchTab(tab) {
+    tabelaAtual = tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.querySelectorAll('.tab-section').forEach(s => s.classList.toggle('active', s.id === 'sec-' + tab));
+}
+
+function abrirFiltro(tab) {
+    tabelaAtual = tab;
+    
+    document.getElementById('filtroConteudo').innerHTML = `
+        <div class="mb-3">
+            <label class="form-label fw-bold">Ordenar por:</label>
+            <select id="sort_order" class="form-select">
+                <option value="">Padrão</option>
+                <option value="alfabetica_az">Ordem Alfabética (A-Z)</option>
+                <option value="alfabetica_za">Ordem Alfabética (Z-A)</option>
+                <option value="data_desc">Data de Entrega (Mais recentes)</option>
+                <option value="data_asc">Data de Entrega (Mais antigas)</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Data Inicial:</label>
+            <input type="date" id="filtro_data_ini" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Data Final:</label>
+            <input type="date" id="filtro_data_fim" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Status:</label>
+            <select id="filtro_status" class="form-select">
+                <option value="">Todos</option>
+                <option value="pendente">Pendente</option>
+                <option value="pago">Pago / Paga</option>
+                <option value="emitida">Emitida</option>
+                <option value="cancelada">Cancelada</option>
+            </select>
+        </div>
+    `;
+    document.getElementById('filtroDrawer').classList.add('open');
+}
+
+function fecharFiltro() { 
+    document.getElementById('filtroDrawer').classList.remove('open'); 
+}
+
+function aplicarFiltros() {
+    const status = document.getElementById('filtro_status').value.toLowerCase();
+    const dataIni = document.getElementById('filtro_data_ini').value;
+    const dataFim = document.getElementById('filtro_data_fim').value;
+    const sortOrder = document.getElementById('sort_order').value;
+
+    let tableId = '';
+    let dateColIdx = -1;
+    let statusColIdx = -1;
+
+    if (tabelaAtual === 'prefeituras') { tableId = 'tbl-pref'; }
+    else if (tabelaAtual === 'fornecedores') { tableId = 'tbl-forn'; }
+    else if (tabelaAtual === 'notas') { tableId = 'tbl-notas'; dateColIdx = 2; statusColIdx = 6; }
+    // BUG RESOLVIDO: Removido alias redundante 'pag'
+    else if (tabelaAtual === 'pagamentos') { tableId = 'tbl-pag'; dateColIdx = 3; statusColIdx = 6; }
+
+    if (!tableId) return;
+
+    const tbody = document.querySelector(`#${tableId} tbody`);
+    let rows = Array.from(tbody.querySelectorAll('tr'));
+
+    rows.forEach(tr => {
+        let mostrar = true;
+
+        if (status && statusColIdx > -1) {
+            const cellStatus = tr.children[statusColIdx].innerText.toLowerCase();
+            if (!cellStatus.includes(status) && !(status === 'pago' && cellStatus.includes('paga'))) {
+                mostrar = false;
+            }
+        }
+
+        if (dateColIdx > -1 && (dataIni || dataFim)) {
+            let dataTexto = tr.children[dateColIdx].innerText.trim();
+            if (dataTexto && dataTexto !== '-') {
+                let dataNota;
+                if (dataTexto.includes('/')) {
+                    let partes = dataTexto.split('/');
+                    dataNota = new Date(`${partes[2]}-${partes[1]}-${partes[0]}T00:00:00`);
+                } else {
+                    dataNota = new Date(`${dataTexto}T00:00:00`);
+                }
+
+                if (dataIni) {
+                    let dIni = new Date(`${dataIni}T00:00:00`);
+                    if (dataNota < dIni) mostrar = false;
+                }
+                if (dataFim) {
+                    let dFim = new Date(`${dataFim}T23:59:59`);
+                    if (dataNota > dFim) mostrar = false;
+                }
+            }
+        }
+
+        tr.style.display = mostrar ? '' : 'none';
+    });
+
+    if (sortOrder) {
+        rows.sort((a, b) => {
+            let nameColIdx = (tabelaAtual === 'notas') ? 1 : 0;
+            let valA = a.children[nameColIdx].innerText.toLowerCase(); 
+            let valB = b.children[nameColIdx].innerText.toLowerCase();
+
+            if (sortOrder === 'alfabetica_az') return valA.localeCompare(valB);
+            if (sortOrder === 'alfabetica_za') return valB.localeCompare(valA);
+
+            if (sortOrder.startsWith('data') && dateColIdx > -1) {
+                let dateA = a.children[dateColIdx].innerText.trim();
+                let dateB = b.children[dateColIdx].innerText.trim();
+                
+                const parseData = (d) => {
+                    if (!d || d === '-') return new Date(0).getTime();
+                    if (d.includes('/')) { let p = d.split('/'); return new Date(`${p[2]}-${p[1]}-${p[0]}`).getTime(); }
+                    return new Date(d).getTime();
+                };
+
+                let timeA = parseData(dateA);
+                let timeB = parseData(dateB);
+
+                if (sortOrder === 'data_asc') return timeA - timeB; 
+                if (sortOrder === 'data_desc') return timeB - timeA; 
+            }
+            return 0;
+        });
+
+        rows.forEach(tr => tbody.appendChild(tr));
+    }
+
+    fecharFiltro();
+}
+
+function limparFiltros() { 
+    document.querySelectorAll('.tab-section tbody tr').forEach(tr => { tr.style.display = ''; });
+    
+    if(document.getElementById('sort_order')) document.getElementById('sort_order').value = '';
+    if(document.getElementById('filtro_status')) document.getElementById('filtro_status').value = '';
+    if(document.getElementById('filtro_data_ini')) document.getElementById('filtro_data_ini').value = '';
+    if(document.getElementById('filtro_data_fim')) document.getElementById('filtro_data_fim').value = '';
+}
+
+// === INICIALIZAÇÃO DA PÁGINA (Garante execução apenas pós-carregamento do DOM) ===
+document.addEventListener('DOMContentLoaded', () => {
+    const inputBusca = document.getElementById('busca');
+    if (inputBusca) {
+        inputBusca.addEventListener('input', filtrar);
+    }
+    
+    // Força a aba inicial e variável global a iniciarem sincronizadas
+    switchTab('prefeituras');
+    
+    carregarDropdowns();
+});
     </script>
 </body>
 </html>

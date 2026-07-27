@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLANTAR - Início</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        :root { --sidebar-w:260px; --primary:#2e7d32; --bg:#f5f6fa; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background:var(--bg); }
+
+        /* Sidebar (mesmo padrão do extrato) */
+        .sidebar {
+            position:fixed; top:0; left:0; width:var(--sidebar-w); height:100vh;
+            background:linear-gradient(180deg,#1a2332 0%,#0f1923 100%);
+            color:#fff; z-index:100; display:flex; flex-direction:column;
+            box-shadow:4px 0 20px rgba(0,0,0,.15);
+        }
+        .sidebar-brand { padding:24px 20px; border-bottom:1px solid rgba(255,255,255,.06); font-size:1.2rem; font-weight:800; }
+        .sidebar-brand i { color:#4caf50; margin-right:6px; }
+        .sidebar-nav { flex:1; padding:16px 0; overflow-y:auto; }
+        .sidebar-section { padding:6px 20px; font-size:.7rem; text-transform:uppercase; letter-spacing:2px; color:rgba(255,255,255,.3); margin-top:16px; }
+        .sidebar-link {
+            display:flex; align-items:center; gap:12px; padding:11px 20px;
+            color:rgba(255,255,255,.6); text-decoration:none; font-size:.92rem;
+            transition:all .2s; border-left:3px solid transparent;
+        }
+        .sidebar-link:hover { color:#fff; background:rgba(255,255,255,.05); }
+        .sidebar-link.active { color:#fff; background:rgba(76,175,80,.12); border-left-color:#4caf50; font-weight:600; }
+        .sidebar-link i { font-size:1.1rem; width:22px; text-align:center; }
+        
+        .main { margin-left:var(--sidebar-w); min-height:100vh; }
+        .topbar {
+            background:#fff; padding:16px 28px; display:flex; align-items:center; justify-content:space-between;
+            box-shadow:0 1px 4px rgba(0,0,0,.06); position:sticky; top:0; z-index:50;
+        }
+        .page-content { padding:28px; }
+
+        /* Cards de Cotação */
+        .quote-card {
+            background:#fff; border-radius:12px; padding:24px; text-align:center;
+            box-shadow:0 4px 12px rgba(0,0,0,.04); transition:transform 0.2s;
+            border-bottom: 4px solid var(--primary);
+        }
+        .quote-card:hover { transform:translateY(-5px); }
+        .quote-icon { font-size: 2.5rem; color: var(--primary); margin-bottom: 10px; opacity: 0.8;}
+        .quote-title { font-size:1.1rem; font-weight:700; color:#555; text-transform:uppercase; letter-spacing: 1px;}
+        .quote-price { font-size:2rem; font-weight:800; color:#1a2332; margin: 10px 0; }
+        .quote-unit { font-size:0.9rem; font-weight:normal; color:#888; }
+        
+        .trend-up { color: #2e7d32; font-weight: 600; background: #e8f5e9; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem;}
+        .trend-down { color: #c62828; font-weight: 600; background: #ffebee; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem;}
+
+        /* Card de Avisos */
+        .news-card { background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.05); overflow:hidden; margin-top:24px; }
+        .news-header { padding:18px 24px; font-weight:700; border-bottom:1px solid #f0f0f0; background:linear-gradient(135deg,#1a2332,#2c3e50); color:#fff; }
+        .aviso-item { padding: 20px 24px; border-bottom: 1px solid #eee; }
+        .aviso-item:last-child { border-bottom: none; }
+        .aviso-data { font-size: 0.8rem; color: var(--primary); font-weight: 600; margin-bottom: 5px; }
+        .aviso-titulo { font-size: 1.1rem; font-weight: 700; color: #1a2332; margin-bottom: 8px; }
+        .aviso-texto { color: #555; margin: 0; line-height: 1.5; }
+
+        @media(max-width:768px) { .sidebar{width:0;display:none;} .main{margin-left:0;} }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand"><i class="bi bi-flower2"></i> PLANTAR</div>
+        <nav class="sidebar-nav">
+            <div class="sidebar-section">Área do Cooperado</div>
+            <!-- Agora a página inicial/cooperativa é a ativa -->
+            <a href="/cooperativa" class="sidebar-link active"><i class="bi bi-house-door"></i> Início / Cotações</a>
+            <a href="/meu-extrato" class="sidebar-link"><i class="bi bi-wallet2"></i> Meu Extrato</a>
+          <a href="/meu-perfil" class="sidebar-link"><i class="bi bi-people"></i> Meu Perfil</a>
+            <a href="/logout" class="sidebar-link" style="color:#ef5350; margin-top: 20px;"><i class="bi bi-box-arrow-right"></i> Sair</a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main">
+        <div class="topbar">
+            <div>
+             <h1 style="margin:0; font-size: 1.3rem;"><i class="bi bi-brightness-high"></i> Olá, {{ nome_cooperado }}!</h1>
+                <small style="color:#888;font-size:.8rem">Bem-vindo ao portal da sua cooperativa.</small>
+            </div>
+            <div>
+                <span class="text-muted" style="font-size:0.9rem;"><strong>{{ current_user.email }}</strong></span>
+            </div>
+        </div>
+
+        <div class="page-content">
+            <h4 class="mb-4" style="color: #1a2332; font-weight: 700;">Cotações do Mercado</h4>
+            
+            <!-- Cards de Cotações -->
+            <div class="row g-4">
+                <!-- Card Soja -->
+                <div class="col-md-4">
+                    <div class="quote-card">
+                        <div class="quote-icon"><i class="bi bi-basket"></i></div>
+                        <div class="quote-title">Soja <span class="quote-unit">(Saca 60kg)</span></div>
+                        <div class="quote-price format-currency">{{ cotacoes.soja.preco | default(0) }}</div>
+                        <div>
+                            {% if cotacoes.soja.tendencia == 'alta' %}
+                                <span class="trend-up"><i class="bi bi-arrow-up-right-circle"></i> {{ cotacoes.soja.variacao }}</span>
+                            {% else %}
+                                <span class="trend-down"><i class="bi bi-arrow-down-right-circle"></i> {{ cotacoes.soja.variacao }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Milho -->
+                <div class="col-md-4">
+                    <div class="quote-card">
+                        <div class="quote-icon"><i class="bi bi-brightness-alt-high"></i></div>
+                        <div class="quote-title">Milho <span class="quote-unit">(Saca 60kg)</span></div>
+                        <div class="quote-price format-currency">{{ cotacoes.milho.preco | default(0) }}</div>
+                        <div>
+                            {% if cotacoes.milho.tendencia == 'alta' %}
+                                <span class="trend-up"><i class="bi bi-arrow-up-right-circle"></i> {{ cotacoes.milho.variacao }}</span>
+                            {% else %}
+                                <span class="trend-down"><i class="bi bi-arrow-down-right-circle"></i> {{ cotacoes.milho.variacao }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Café -->
+                <div class="col-md-4">
+                    <div class="quote-card" style="border-bottom-color: #6d4c41;"> <!-- Cor específica pro café -->
+                        <div class="quote-icon" style="color: #6d4c41;"><i class="bi bi-cup-hot"></i></div>
+                        <div class="quote-title">Café <span class="quote-unit">(Saca 60kg)</span></div>
+                        <div class="quote-price format-currency">{{ cotacoes.cafe.preco | default(0) }}</div>
+                        <div>
+                            {% if cotacoes.cafe.tendencia == 'alta' %}
+                                <span class="trend-up"><i class="bi bi-arrow-up-right-circle"></i> {{ cotacoes.cafe.variacao }}</span>
+                            {% else %}
+                                <span class="trend-down"><i class="bi bi-arrow-down-right-circle"></i> {{ cotacoes.cafe.variacao }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mural de Avisos da Cooperativa -->
+            <div class="table-card news-card">
+                <div class="news-header"><i class="bi bi-megaphone"></i> Mural de Avisos da Cooperativa</div>
+                <div class="avisos-list">
+                    {% if avisos %}
+                        {% for aviso in avisos %}
+                        <div class="aviso-item">
+                            <div class="aviso-data"><i class="bi bi-calendar3"></i> {{ aviso.data }}</div>
+                            <div class="aviso-titulo">{{ aviso.titulo }}</div>
+                            <p class="aviso-texto">{{ aviso.texto }}</p>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="aviso-item text-center text-muted py-4">
+                            Nenhum aviso no momento.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+    
+        document.querySelectorAll('.format-currency').forEach(el => {
+            const val = parseFloat(el.textContent);
+            if (!isNaN(val)) {
+                el.textContent = new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                }).format(val);
+            }
+        });
+    </script>
+</body>
+</html>
