@@ -93,7 +93,8 @@ def login():
         conn.close()
 
         if not row or not check_password_hash(row['senha_hash'], senha):
-            return render_template('login.html', erro='Email ou senha inválidos')
+            # Reabre o modal de Login na própria landing, com a mensagem de erro
+            return render_template('landing.html', erro_login='Email ou senha inválidos')
 
         usuario = Usuario(row['id'], row['email'], row['tipo'], row['fornecedor_id'], row['aprovado'])
         login_user(usuario)
@@ -102,7 +103,8 @@ def login():
             return redirect(url_for('tabelas'))
         return redirect(url_for('meu_extrato'))
 
-    return render_template('login.html')
+    # GET /login: não há mais página própria, os modais vivem na landing
+    return redirect(url_for('landing'))
 @app.route('/cadastro', methods=['GET', 'POST'])
 def cadastro():
     if request.method == 'POST':
@@ -115,13 +117,13 @@ def cadastro():
         existente = conn.execute("SELECT id FROM usuarios WHERE email = ?", (email,)).fetchone()
         if existente:
             conn.close()
-            return render_template('cadastro.html', erro='Esse email já está cadastrado.')
+            return render_template('landing.html', erro_cadastro='Esse email já está cadastrado.')
 
         if tipo == 'cooperativa':
             codigo = request.form.get('codigo_acesso', '')
             if codigo != app.config['CODIGO_CADASTRO_COOPERATIVA']:
                 conn.close()
-                return render_template('cadastro.html', erro='Código de acesso inválido.')
+                return render_template('landing.html', erro_cadastro='Código de acesso inválido.')
 
             conn.execute("""
                 INSERT INTO usuarios (email, senha_hash, tipo, fornecedor_id, aprovado, ativo)
@@ -129,7 +131,7 @@ def cadastro():
             """, (email, generate_password_hash(senha)))
             conn.commit()
             conn.close()
-            return render_template('cadastro.html', sucesso='Conta da cooperativa criada! Já pode fazer login.')
+            return render_template('landing.html', sucesso_cadastro='Conta da cooperativa criada! Já pode fazer login.')
 
         else:  # cooperado
             cpf_cnpj = request.form.get('cpf_cnpj', '')
@@ -137,7 +139,7 @@ def cadastro():
 
             if not fornecedor:
                 conn.close()
-                return render_template('cadastro.html', erro='CPF/CNPJ não encontrado. Fale com a cooperativa.')
+                return render_template('landing.html', erro_cadastro='CPF/CNPJ não encontrado. Fale com a cooperativa.')
 
             conn.execute("""
                 INSERT INTO usuarios (email, senha_hash, tipo, fornecedor_id, aprovado)
@@ -145,9 +147,10 @@ def cadastro():
             """, (email, generate_password_hash(senha), fornecedor['id']))
             conn.commit()
             conn.close()
-            return render_template('cadastro.html', sucesso='Cadastro realizado com sucesso! Você já pode fazer login.')
+            return render_template('landing.html', sucesso_cadastro='Cadastro realizado com sucesso! Você já pode fazer login.')
 
-    return render_template('cadastro.html')
+    # GET /cadastro: não há mais página própria, os modais vivem na landing
+    return redirect(url_for('landing'))
 @app.route('/logout')
 @login_required
 def logout():
@@ -155,15 +158,24 @@ def logout():
     return redirect(url_for('login'))
 
 @app.route('/painel/graficos')
+@login_required
 def graficos():
+    if current_user.tipo != 'cooperativa':
+        return redirect(url_for('meu_extrato'))
     return render_template('graficos.html')
 
 @app.route('/painel/cadastros')
+@login_required
 def cadastros():
+    if current_user.tipo != 'cooperativa':
+        return redirect(url_for('meu_extrato'))
     return render_template('cadastros.html')
 
 @app.route('/painel/visualizador')
+@login_required
 def visualizador():
+    if current_user.tipo != 'cooperativa':
+        return redirect(url_for('meu_extrato'))
     return render_template('visualizador.html')
 
 @app.route('/dashboard')
@@ -294,7 +306,10 @@ def meu_perfil():
         conn.close()
         
 @app.route('/painel/tabelas')
+@login_required
 def tabelas():
+    if current_user.tipo != 'cooperativa':
+        return redirect(url_for('meu_extrato'))
     conn = get_db()
     try:
         prefs_df = pd.read_sql_query("SELECT * FROM vw_resultados_por_prefeitura", conn)
@@ -1077,13 +1092,19 @@ def api_importar_pagamentos():
 # ===========================================================================
 
 @app.route('/api/banco/download')
+@login_required
 def api_banco_download():
+    if current_user.tipo != 'cooperativa':
+        return jsonify({'erro': 'Acesso restrito à cooperativa.'}), 403
     db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), DATABASE)
     if not os.path.exists(db_path): return jsonify({'erro': 'Banco não encontrado'}), 404
     return send_file(db_path, as_attachment=True, download_name='coaipro.db')
 
 @app.route('/api/banco/upload', methods=['POST'])
+@login_required
 def api_banco_upload():
+    if current_user.tipo != 'cooperativa':
+        return jsonify({'erro': 'Acesso restrito à cooperativa.'}), 403
     if 'arquivo' not in request.files: return jsonify({'erro': 'Nenhum arquivo enviado'}), 400
     arquivo = request.files['arquivo']
     if arquivo.filename == '': return jsonify({'erro': 'Arquivo vazio'}), 400
@@ -1099,7 +1120,10 @@ def api_banco_upload():
         return jsonify({'erro': str(e)}), 500
 
 @app.route('/api/banco/excel')
+@login_required
 def api_banco_excel():
+    if current_user.tipo != 'cooperativa':
+        return jsonify({'erro': 'Acesso restrito à cooperativa.'}), 403
     db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), DATABASE)
     conn = sqlite3.connect(db_path)
     try:
@@ -1119,7 +1143,10 @@ def api_banco_excel():
     return send_file(output, as_attachment=True, download_name='plantar_banco_completo.xlsx', mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 @app.route('/api/banco/tabelas')
+@login_required
 def api_banco_tabelas():
+    if current_user.tipo != 'cooperativa':
+        return jsonify({'erro': 'Acesso restrito à cooperativa.'}), 403
     db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), DATABASE)
     conn = sqlite3.connect(db_path)
     items = []
@@ -1136,7 +1163,10 @@ def api_banco_tabelas():
     return jsonify(items)
 
 @app.route('/api/banco/tabela/<nome>')
+@login_required
 def api_banco_tabela_dados(nome):
+    if current_user.tipo != 'cooperativa':
+        return jsonify({'erro': 'Acesso restrito à cooperativa.'}), 403
     db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), DATABASE)
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row

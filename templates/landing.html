@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PLANTAR - Gestão de Contratos da Agricultura Familiar</title>
+    <title>KOKUE - Gestão de Contratos da Agricultura Familiar</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <style>
@@ -52,14 +52,39 @@
         .kpi-blue i,.kpi-blue .kpi-value { color:#42a5f5; }
         .kpi-purple i,.kpi-purple .kpi-value { color:#ab47bc; }
 
+        /* Auth actions (Login / Cadastro) */
+        .auth-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:24px; margin-bottom:24px; }
+
+        /* Modais de autenticação */
+        .auth-modal { background:#16222e; color:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:16px; }
+        .auth-modal .modal-title { font-weight:700; font-size:1.15rem; }
+        .auth-modal .form-label { color:rgba(255,255,255,0.7); font-size:.88rem; }
+        .auth-modal .form-control {
+            background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff;
+        }
+        .auth-modal .form-control:focus {
+            background:rgba(255,255,255,0.08); border-color:#4caf50; color:#fff; box-shadow:0 0 0 .2rem rgba(76,175,80,.2);
+        }
+        .auth-modal .form-control::placeholder { color:rgba(255,255,255,0.3); }
+        .auth-switch { text-align:center; margin-top:16px; font-size:.88rem; color:rgba(255,255,255,0.55); }
+        .auth-switch a { color:#4caf50; text-decoration:none; font-weight:600; }
+        .auth-switch a:hover { text-decoration:underline; }
+
+        .tipo-tabs { display:flex; gap:4px; background:rgba(255,255,255,0.05); border-radius:10px; padding:4px; margin-bottom:20px; }
+        .tipo-tab { flex:1; text-align:center; padding:9px 6px; border-radius:7px; font-weight:600; font-size:.85rem; color:rgba(255,255,255,0.55); cursor:pointer; user-select:none; transition:.2s; }
+        .tipo-tab.active { background:#4caf50; color:#fff; }
+        .campos-cooperado, .campos-cooperativa { display:none; }
+        .campos-cooperado.active, .campos-cooperativa.active { display:block; }
+
         /* Action Cards */
-        .action-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:24px; margin-bottom:60px; }
+        .action-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:24px; margin-bottom:20px; }
         .action-card {
             background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
             border-radius:20px; padding:40px 32px; text-align:center;
             backdrop-filter:blur(10px); transition:all .35s; cursor:pointer; text-decoration:none; color:#fff;
         }
         .action-card:hover { background:rgba(255,255,255,0.1); transform:translateY(-6px); color:#fff; text-decoration:none; }
+        button.action-card { width:100%; font-family:inherit; }
         .action-card .icon-wrap {
             width:72px; height:72px; border-radius:18px; display:flex; align-items:center; justify-content:center;
             margin:0 auto 20px; font-size:1.8rem;
@@ -69,8 +94,11 @@
         .icon-graficos { background:linear-gradient(135deg,#2e7d32,#4caf50); }
         .icon-tabelas { background:linear-gradient(135deg,#1565c0,#42a5f5); }
         .icon-cadastro { background:linear-gradient(135deg,#6a1b9a,#ab47bc); }
+        .icon-login { background:linear-gradient(135deg,#37474f,#607d8b); }
 
-        /* DB Tools */
+        .section-label { font-size:.75rem; text-transform:uppercase; letter-spacing:2px; color:rgba(255,255,255,0.35); margin-bottom:16px; text-align:center; }
+
+        /* DB Tools (apenas para usuários autenticados/admin) */
         .db-tools {
             display:flex; justify-content:center; gap:16px; margin-bottom:60px; flex-wrap:wrap;
         }
@@ -85,6 +113,7 @@
         .db-btn-download i { color:#42a5f5; }
         .db-btn-upload i { color:#ff9800; }
         .db-btn input[type=file] { display:none; }
+        .db-tools-hint { text-align:center; font-size:.75rem; color:rgba(255,255,255,0.3); margin-bottom:12px; }
 
         /* Credits */
         .credits-section { padding:50px 0 30px; border-top:1px solid rgba(255,255,255,0.06); }
@@ -120,16 +149,16 @@
     <div class="content">
         <nav class="navbar">
             <div class="container">
-                <span class="navbar-brand"><i class="bi bi-flower2" style="color:#4caf50"></i> PLANTAR</span>
+                <span class="navbar-brand"><i class="bi bi-flower2" style="color:#4caf50"></i> KOKUE</span>
                 <span style="color:rgba(255,255,255,0.4);font-size:0.85rem"><i class="bi bi-calendar3"></i> <span id="data-hoje"></span></span>
             </div>
         </nav>
 
         <section class="hero">
             <div class="container">
-                <h1><span>PLANTAR</span></h1>
+                <h1><span>KOKUE</span></h1>
                 <p style="font-size:.95rem;color:rgba(255,255,255,0.45);margin-bottom:8px;letter-spacing:1px">Planilha Coletiva para a Administração de Contratos da Agricultura Familiar</p>
-                <p>Controle completo de notas fiscais, pagamentos a fornecedores, custos e resultados por prefeitura. Tudo em um painel integrado.</p>
+                <p>Controle completo de notas fiscais, pagamentos a fornecedores, custos e resultados por prefeitura, tudo em um painel integrado.</p>
             </div>
         </section>
 
@@ -157,19 +186,45 @@
                 </div>
             </div>
 
-            <div class="action-grid">
-                   <a href="/cadastro" class="action-card">
+            {% if current_user.is_authenticated %}
+            <!-- Usuário já logado -->
+            <div class="section-label">Sua conta</div>
+            <div class="auth-grid">
+                <a href="{{ url_for('tabelas') if current_user.tipo == 'cooperativa' else url_for('meu_extrato') }}" class="action-card">
+                    <div class="icon-wrap icon-login"><i class="bi bi-speedometer2"></i></div>
+                    <h3>Meu Painel</h3>
+                    <p>Logado como {{ current_user.email }}. Acesse seus dados e relatórios.</p>
+                </a>
+                <a href="{{ url_for('logout') }}" class="action-card">
+                    <div class="icon-wrap" style="background:linear-gradient(135deg,#b71c1c,#e53935)"><i class="bi bi-box-arrow-right"></i></div>
+                    <h3>Sair</h3>
+                    <p>Encerrar a sessão atual.</p>
+                </a>
+            </div>
+            {% else %}
+            <!-- Acesso: Login / Cadastro -->
+            <div class="section-label">Acesso</div>
+            <div class="auth-grid">
+                <button type="button" class="action-card" data-bs-toggle="modal" data-bs-target="#modalLogin">
+                    <div class="icon-wrap icon-login"><i class="bi bi-box-arrow-in-right"></i></div>
+                    <h3>Login</h3>
+                    <p>Já tem conta? Entre para acessar seu painel, notas fiscais e pagamentos.</p>
+                </button>
+                <button type="button" class="action-card" data-bs-toggle="modal" data-bs-target="#modalCadastro">
                     <div class="icon-wrap icon-cadastro"><i class="bi bi-plus-circle"></i></div>
                     <h3>Cadastre-se</h3>
                     <p>Registre-se para acompanhar novas notas fiscais e custos/descontos vinculados a fornecedores e prefeituras.</p>
-                </a>
-                
-                 <a href="/login" class="action-card">
-                    <div class="icon-wrap icon-graficos"><i class="bi bi-bar-chart-line"></i></div>
-                    <h3>Login</h3>
-                    <p>Visualize resultados por prefeitura, distribuição de custos e comparativos financeiros em gráficos interativos.</p>
-                </a>
-                
+                </button>
+            </div>
+            {% endif %}
+
+            <!-- Funcionalidades -->
+            <!-- Estes cards levam a rotas restritas ao papel 'cooperativa' (protegidas no backend
+                 com @login_required + checagem de tipo). Por isso só aparecem para quem já está
+                 logado como cooperativa; não confie apenas nisso, o backend já valida de novo. -->
+            {% if current_user.is_authenticated and current_user.tipo == 'cooperativa' %}
+            <div class="section-label">Painel</div>
+            <div class="action-grid">
                 <a href="/painel/graficos" class="action-card">
                     <div class="icon-wrap icon-graficos"><i class="bi bi-bar-chart-line"></i></div>
                     <h3>Gráficos</h3>
@@ -180,16 +235,21 @@
                     <h3>Tabelas</h3>
                     <p>Consulte notas fiscais, pagamentos, fornecedores e prefeituras com filtros e busca avançada.</p>
                 </a>
-             
                 <a href="/painel/visualizador" class="action-card">
                     <div class="icon-wrap" style="background:linear-gradient(135deg,#00695c,#26a69a)"><i class="bi bi-grid-3x3"></i></div>
                     <h3>Visualizador BD</h3>
                     <p>Visualize todas as tabelas do banco em formato planilha. Exporte para Excel com um clique.</p>
                 </a>
             </div>
+            {% endif %}
 
             <!-- Ferramentas BD -->
-            <div class="db-tools">
+            <!-- ATENÇÃO: estas rotas (/api/banco/download e /api/banco/upload) precisam ser
+                 protegidas por autenticação/permissão de admin no backend. Não confie apenas
+                 em esconder o botão no front-end: valide a sessão/role no servidor também. -->
+            {% if current_user.is_authenticated and current_user.tipo == 'cooperativa' %}
+            <div class="db-tools-hint">Ferramentas administrativas (cooperativa)</div>
+            <div class="db-tools" id="db-tools">
                 <a href="/api/banco/download" class="db-btn db-btn-download">
                     <i class="bi bi-download"></i> Baixar Banco de Dados
                 </a>
@@ -197,13 +257,8 @@
                     <i class="bi bi-upload"></i> Enviar Banco de Dados
                     <input type="file" id="upload-bd" accept=".db,.sqlite,.sqlite3" onchange="uploadBD(this)">
                 </label>
-                <label class="db-btn db-btn-upload">
-                    <i class="bi bi-upload"></i> Enviar Banco de Dados
-                    <input type="file" id="upload-bd" accept=".db,.sqlite,.sqlite3" onchange="uploadBD(this)">
-                </label>
-               
-
             </div>
+            {% endif %}
         </section>
 
         <!-- Créditos -->
@@ -236,15 +291,112 @@
 
                 <div class="devs-section">
                     <div class="devs-label">Desenvolvedores</div>
-                    <div class="dev-name"><strong>Prof. Dr. Iuri E. P. Ferreira</strong></div>
+                  <div class="dev-name"><strong>Prof. Dr. Iuri E. P. Ferreira</strong></div>
+                    <div class="dev-name"><strong>Ludmyla Oliveira</strong></div>
                     <div class="dev-name"><strong>Eng. Dr. Lucca Pérez</strong></div>
                 </div>
             </div>
         </section>
 
         <footer class="footer">
-            <div class="container">PLANTAR &copy; 2025 - Planilha Coletiva para a Administração de Contratos da Agricultura Familiar</div>
+            <div class="container">KOKUE &copy; 2025 - Planilha Coletiva para a Administração de Contratos da Agricultura Familiar</div>
         </footer>
+    </div>
+
+    <!-- Modal: Login -->
+    <div class="modal fade" id="modalLogin" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content auth-modal">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title"><i class="bi bi-flower2" style="color:#4caf50"></i> Entrar no KOKUE</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {% if erro_login %}
+                    <div class="alert alert-danger py-2">{{ erro_login }}</div>
+                    {% endif %}
+                    <form method="POST" action="{{ url_for('login') }}">
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" required autofocus>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Senha</label>
+                            <input type="password" name="senha" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Entrar</button>
+                    </form>
+                    <div class="auth-switch">
+                        Ainda não tem conta?
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#modalCadastro" data-bs-dismiss="modal">Cadastre-se</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Cadastro -->
+    <div class="modal fade" id="modalCadastro" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content auth-modal">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title"><i class="bi bi-flower2" style="color:#4caf50"></i> Criar conta no KOKUE</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="tipo-tabs">
+                        <div class="tipo-tab active" id="tab-cooperado" onclick="selecionarTipo('cooperado')">
+                            <i class="bi bi-person"></i> Sou Cooperado
+                        </div>
+                        <div class="tipo-tab" id="tab-cooperativa" onclick="selecionarTipo('cooperativa')">
+                            <i class="bi bi-building"></i> Sou Cooperativa
+                        </div>
+                    </div>
+
+                    {% if erro_cadastro %}
+                    <div class="alert alert-danger py-2">{{ erro_cadastro }}</div>
+                    {% endif %}
+
+                    {% if sucesso_cadastro %}
+                    <div class="alert alert-success py-2">{{ sucesso_cadastro }}</div>
+                    {% else %}
+                    <form method="POST" action="{{ url_for('cadastro') }}">
+                        <input type="hidden" name="tipo" id="input-tipo" value="cooperado">
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Senha</label>
+                            <input type="password" name="senha" class="form-control" required minlength="6">
+                        </div>
+
+                        <div class="campos-cooperado active">
+                            <div class="mb-3">
+                                <label class="form-label">CPF ou CNPJ (o mesmo cadastrado na cooperativa)</label>
+                                <input type="text" name="cpf_cnpj" class="form-control" placeholder="000.000.000-00">
+                            </div>
+                        </div>
+
+                        <div class="campos-cooperativa">
+                            <div class="mb-3">
+                                <label class="form-label">Código de acesso da cooperativa</label>
+                                <input type="text" name="codigo_acesso" class="form-control" placeholder="Fornecido pela equipe">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">Cadastrar</button>
+                    </form>
+                    {% endif %}
+
+                    <div class="auth-switch">
+                        Já tem conta?
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#modalLogin" data-bs-dismiss="modal">Fazer login</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Toast -->
@@ -267,6 +419,28 @@
         document.getElementById('kpi-notas').textContent = d.totais.notas_pendentes;
         document.getElementById('kpi-pag').textContent = d.totais.pagamentos_pendentes;
     }).catch(() => {});
+
+    // Abas Cooperado / Cooperativa no modal de cadastro
+    function selecionarTipo(tipo) {
+        document.getElementById('input-tipo').value = tipo;
+        document.getElementById('tab-cooperado').classList.toggle('active', tipo === 'cooperado');
+        document.getElementById('tab-cooperativa').classList.toggle('active', tipo === 'cooperativa');
+        document.querySelector('.campos-cooperado').classList.toggle('active', tipo === 'cooperado');
+        document.querySelector('.campos-cooperativa').classList.toggle('active', tipo === 'cooperativa');
+        document.querySelector('[name="cpf_cnpj"]').required = (tipo === 'cooperado');
+        document.querySelector('[name="codigo_acesso"]').required = (tipo === 'cooperativa');
+    }
+    selecionarTipo('cooperado');
+
+    // Reabre automaticamente o modal certo quando o Flask renderiza erro/sucesso
+    // (o form faz POST tradicional, a página recarrega, e o backend devolve
+    // essas variáveis via render_template para sinalizar qual modal mostrar)
+    {% if erro_login %}
+    new bootstrap.Modal(document.getElementById('modalLogin')).show();
+    {% endif %}
+    {% if erro_cadastro or sucesso_cadastro %}
+    new bootstrap.Modal(document.getElementById('modalCadastro')).show();
+    {% endif %}
 
     function showToastBD(msg, tipo) {
         const el = document.getElementById('toastBD');

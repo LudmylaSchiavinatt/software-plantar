@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PLANTAR - Tabelas</title>
+    <title>KOKUE - Tabelas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <style>
-        .filtro-drawer { position: fixed; top: 0; right: -350px; width: 350px; height: 100vh; background: #fff; box-shadow: -4px 0 15px rgba(0,0,0,0.2); z-index: 999; transition: 0.3s; display: flex; flex-direction: column; }
+        .filtro-drawer { position: fixed; top: 0; right: -350px; width: 350px; height: 100vh; background: #fff; border-top-left-radius:20px; border-bottom-left-radius:20px; box-shadow: -8px 0 30px rgba(0,0,0,0.12); z-index: 999; transition: 0.3s; display: flex; flex-direction: column; }
         .filtro-drawer.open { right: 0; }
         .filtro-header, .filtro-footer { padding: 15px; border-bottom: 1px solid #eee; }
         #filtroConteudo { padding: 15px; overflow-y: auto; }
@@ -27,26 +27,34 @@
         .sidebar-link.active { color:#fff; background:rgba(76,175,80,.12); border-left-color:#4caf50; font-weight:600; }
         .sidebar-link i { font-size:1.1rem; width:22px; text-align:center; }
         .sidebar-footer { padding:16px 20px; border-top:1px solid rgba(255,255,255,.06); font-size:.78rem; color:rgba(255,255,255,.25); }
+        .sidebar-user { display:flex; align-items:center; gap:10px; padding:14px 20px; border-top:1px solid rgba(255,255,255,.06); }
+        .sidebar-user-avatar { width:34px; height:34px; border-radius:50%; background:rgba(76,175,80,.15); color:#4caf50; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; }
+        .sidebar-user-info { flex:1; min-width:0; }
+        .sidebar-user-email { font-size:.8rem; color:#fff; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .sidebar-user-role { font-size:.68rem; color:rgba(255,255,255,.4); text-transform:uppercase; letter-spacing:1px; }
+        .sidebar-user-logout { color:rgba(255,255,255,.4); font-size:1.1rem; padding:6px; border-radius:6px; text-decoration:none; transition:all .2s; flex-shrink:0; }
+        .sidebar-user-logout:hover { color:#e53935; background:rgba(229,57,53,.12); }
         .main { margin-left:var(--sidebar-w); min-height:100vh; }
-        .topbar { background:#fff; padding:16px 28px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 1px 4px rgba(0,0,0,.06); position:sticky; top:0; z-index:50; }
+        .topbar { background:rgba(255,255,255,.82); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); padding:16px 28px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 1px 12px rgba(0,0,0,.05); border-bottom:1px solid rgba(0,0,0,.04); position:sticky; top:0; z-index:50; }
         .topbar h1 { font-size:1.25rem; font-weight:700; color:#1a2332; margin:0; }
         .page-content { padding:28px; }
         
-        .tab-bar { display:flex; gap:4px; background:#fff; border-radius:12px; padding:6px; box-shadow:0 2px 8px rgba(0,0,0,.05); margin-bottom:24px; }
-        .tab-btn { flex:1; padding:12px 8px; border:none; background:transparent; border-radius:8px; font-weight:600; font-size:.88rem; color:#666; cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center; gap:6px; }
+        .tab-bar { display:flex; gap:4px; background:#fff; border:1px solid rgba(0,0,0,.04); border-radius:18px; padding:6px; box-shadow:0 4px 16px rgba(0,0,0,.05); margin-bottom:24px; }
+        .tab-btn { flex:1; padding:12px 8px; border:none; background:transparent; border-radius:12px; font-weight:600; font-size:.88rem; color:#666; cursor:pointer; transition:all .25s; display:flex; align-items:center; justify-content:center; gap:6px; }
         .tab-btn:hover { color:#1a2332; background:#f5f6fa; }
-        .tab-btn.active { background:var(--primary); color:#fff; }
+        .tab-btn.active { background:linear-gradient(135deg,#2e7d32,#4caf50); color:#fff; box-shadow:0 4px 10px rgba(46,125,50,.25); }
         .tab-section { display:none; }
         .tab-section.active { display:block; }
         
-        .tbl-card { background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.05); overflow:hidden; margin-bottom:24px; }
-        .tbl-card-header { padding:16px 20px; font-weight:700; font-size:.95rem; border-bottom:1px solid #f0f0f0; display:flex; align-items:center; justify-content:space-between; }
+        .tbl-card { background:#fff; border:1px solid rgba(0,0,0,.04); border-radius:20px; box-shadow:0 4px 20px rgba(0,0,0,.06); overflow:hidden; margin-bottom:24px; transition:box-shadow .3s, transform .3s; }
+        .tbl-card:hover { box-shadow:0 8px 28px rgba(0,0,0,.09); }
+        .tbl-card-header { padding:18px 22px; font-weight:700; font-size:.95rem; border-bottom:1px solid #f0f0f0; display:flex; align-items:center; justify-content:space-between; }
         .tbl-card-header span { display:flex; align-items:center; gap:8px; }
         .tbl-card-body { padding:0; }
         .table { margin:0; font-size:.88rem; }
         .table thead th { background:#f8f9fa; font-weight:700; font-size:.78rem; text-transform:uppercase; letter-spacing:.5px; color:#555; padding:12px 16px; border:none; }
         .table tbody td { padding:10px 16px; vertical-align:middle; border-bottom:1px solid #f5f5f5; }
-        .table-hover tbody tr:hover { background:rgba(76,175,80,.04); }
+        .table-hover tbody tr:hover { background:rgba(76,175,80,.05); }
         
         .badge-status { padding:4px 10px; border-radius:20px; font-weight:500; font-size:.75rem; text-transform: capitalize;}
         .badge-paga,.badge-pago { background:#c8e6c9; color:#1b5e20; }
@@ -55,23 +63,89 @@
         .valor-negativo { color:#c62828; }
         .valor-positivo { color:#2e7d32; }
         
-        .search-box { background:#fff; padding:12px 20px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.05); margin-bottom:20px; display:flex; gap:12px; }
-        .search-box input { flex:1; border:1px solid #e0e0e0; border-radius:8px; padding:8px 14px; font-size:.9rem; }
-        .search-box input:focus { outline:none; border-color:#4caf50; }
-        .search-box button { background:var(--primary); border:none; color:#fff; border-radius:8px; padding:8px 20px; font-weight:600; cursor:pointer; }
+        .search-box { background:#fff; border:1px solid rgba(0,0,0,.04); padding:12px 20px; border-radius:18px; box-shadow:0 4px 16px rgba(0,0,0,.05); margin-bottom:20px; display:flex; gap:12px; }
+        .search-box input { flex:1; border:1px solid #e0e0e0; border-radius:10px; padding:8px 14px; font-size:.9rem; transition:border-color .2s, box-shadow .2s; }
+        .search-box input:focus { outline:none; border-color:#4caf50; box-shadow:0 0 0 .18rem rgba(76,175,80,.15); }
+        .search-box button { background:linear-gradient(135deg,#2e7d32,#4caf50); border:none; color:#fff; border-radius:10px; padding:8px 20px; font-weight:600; cursor:pointer; transition:transform .2s, box-shadow .2s; }
+        .search-box button:hover { transform:translateY(-1px); box-shadow:0 4px 10px rgba(46,125,50,.25); }
         .counter-badge { background:#e8f5e9; color:#2e7d32; padding:3px 10px; border-radius:12px; font-size:.78rem; font-weight:600; }
         
         @media(max-width:768px) { .sidebar{width:0;overflow:hidden;} .main{margin-left:0;} }
-        .btn-verde{
-    background-color:#198754 !important;
-    border-color:#198754 !important;
-    color:#fff !important;
-}
 
-.btn-verde:hover{
-    background-color:#157347 !important;
-    border-color:#146c43 !important;
-}
+        /* Estilo geral de botões: cantos mais arredondados e leve elevação no
+           hover, para ficar com a mesma "textura" dos cards do landing. */
+        .btn { border-radius:10px; transition:transform .18s, box-shadow .18s, background-color .18s, border-color .18s; }
+        .btn-sm { border-radius:8px; }
+        .btn:not(.btn-sm):hover { transform:translateY(-1px); }
+        .btn-close { transition:transform .18s; }
+        .btn-close:hover { transform:rotate(90deg); }
+
+        /* Modais com cantos e sombra no mesmo espírito dos cards do landing,
+           e cabeçalho em gradiente (igual aos icon-wrap do landing) em vez
+           de verde chapado. */
+        .modal-content { border-radius:20px; border:none; box-shadow:0 20px 60px rgba(0,0,0,.25); overflow:hidden; }
+        .modal-header.bg-success {
+            background:linear-gradient(135deg,#2e7d32,#4caf50) !important;
+            border-bottom:none;
+        }
+
+        /* Botões de ação nas linhas da tabela (editar/excluir/relatório):
+           trocados de emoji (✏️🗑️📄) — que destoam dos Bootstrap Icons usados
+           no resto do sistema — para ícones reais em "chips" circulares com
+           cor suave, no mesmo espírito dos icon-wrap do landing. */
+        .btn-icon-action { width:32px; height:32px; padding:0; border:none; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:.9rem; line-height:1; margin:0 2px; background:rgba(26,35,50,.06); color:#5b6672; transition:all .2s; }
+        .btn-icon-action:hover { background:#e8f5e9; color:#2e7d32; transform:translateY(-2px); box-shadow:0 4px 10px rgba(46,125,50,.2); }
+
+        /* Harmonização de cor: o Bootstrap usa #198754 por padrão em .btn-success
+           e .bg-success, mas a paleta oficial do KOKUE é #2e7d32 (--primary).
+           Sobrescrevendo aqui para que TODOS os botões/cabeçalhos "success"
+           (Novo Contrato, Novo Cooperado, Salvar, cabeçalhos dos modais, etc.)
+           usem o mesmo verde do resto do sistema. */
+        .btn-success {
+            background-color: var(--primary) !important;
+            border-color: var(--primary) !important;
+            color: #fff !important;
+        }
+        .btn-success:hover, .btn-success:focus {
+            background-color: #256428 !important;
+            border-color: #1e5121 !important;
+        }
+        .btn-outline-success {
+            color: var(--primary) !important;
+            border-color: var(--primary) !important;
+        }
+        .btn-outline-success:hover {
+            background-color: var(--primary) !important;
+            border-color: var(--primary) !important;
+            color: #fff !important;
+        }
+        .bg-success {
+            background-color: var(--primary) !important;
+        }
+
+        /* Botões de "editar" (lápis ✏️) usavam .btn-primary, que no Bootstrap
+           é azul. Trocado para um verde mais claro (--edit-green), diferente
+           do verde escuro usado em criar/salvar, só para manter alguma
+           distinção visual entre as ações — mas agora tudo fica na família verde. */
+        :root { --edit-green: #43a047; }
+        .btn-primary {
+            background-color: var(--edit-green) !important;
+            border-color: var(--edit-green) !important;
+            color: #fff !important;
+        }
+        .btn-primary:hover, .btn-primary:focus {
+            background-color: #2e7d32 !important;
+            border-color: #2e7d32 !important;
+        }
+        .btn-outline-primary {
+            color: var(--edit-green) !important;
+            border-color: var(--edit-green) !important;
+        }
+        .btn-outline-primary:hover {
+            background-color: var(--edit-green) !important;
+            border-color: var(--edit-green) !important;
+            color: #fff !important;
+        }
     </style>
 </head>
 <body>
@@ -196,7 +270,7 @@
     <div class="modal fade" id="modalCusto" tabindex="-1">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
-                <div class="modal-header text-white" style="background:linear-gradient(135deg,#1565c0,#1e88e5);">
+                <div class="modal-header text-white" style="background: linear-gradient(135deg,#2e7d32,#66bb6a);">
                     <h5><i class="bi bi-calculator"></i> Lançar Custo / Desconto</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
@@ -287,14 +361,14 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('formCusto').reset(); atualizarResumo();">Limpar</button>
-                     <button type="button" button class="btn btn-success w-100" onclick="salvarCusto()">Salvar Custo</button>
+                     <button type="button" class="btn btn-success w-100" onclick="salvarCusto()">Salvar Custo</button>
                 </div>
             </div>
         </div>
     </div>
 
     <aside class="sidebar">
-        <div class="sidebar-brand"><i class="bi bi-flower2" style="color:#4caf50"></i> PLANTAR</div>
+        <div class="sidebar-brand"><i class="bi bi-flower2" style="color:#4caf50"></i> KOKUE</div>
         <nav class="sidebar-nav">
             <div class="sidebar-section">Principal</div>
             <a href="/" class="sidebar-link"><i class="bi bi-house"></i> Landing Page</a>
@@ -312,6 +386,14 @@
             <a href="/api/banco/download" class="sidebar-link"><i class="bi bi-download"></i> Baixar BD</a>
             <label class="sidebar-link" style="cursor:pointer"><i class="bi bi-upload"></i> Enviar BD<input type="file" accept=".db,.sqlite,.sqlite3" onchange="uploadBD(this)" style="display:none"></label>
         </nav>
+        <div class="sidebar-user">
+            <div class="sidebar-user-avatar"><i class="bi bi-person-fill"></i></div>
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-email">{{ current_user.email }}</div>
+                <div class="sidebar-user-role">Cooperativa</div>
+            </div>
+            <a href="{{ url_for('logout') }}" class="sidebar-user-logout" title="Sair"><i class="bi bi-box-arrow-right"></i></a>
+        </div>
         <div class="sidebar-footer">
             <div style="font-size:.65rem;color:rgba(255,255,255,.35);line-height:1.5">
                 <i class="bi bi-mortarboard-fill" style="color:#c62828"></i> UFSCar &nbsp;
@@ -326,7 +408,7 @@
         <div class="topbar">
             <div>
                 <h1 style="margin:0"><i class="bi bi-table"></i> Tabelas</h1>
-                <small style="color:#888;font-size:.72rem">PLANTAR - Planilha Coletiva para a Administração de Contratos da Agricultura Familiar</small>
+                <small style="color:#888;font-size:.72rem">KOKUE - Planilha Coletiva para a Administração de Contratos da Agricultura Familiar</small>
             </div>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0" style="font-size:.85rem"><li class="breadcrumb-item"><a href="/">Início</a></li><li class="breadcrumb-item active">Tabelas</li></ol>
@@ -383,8 +465,8 @@
                                     <td class="text-end valor-negativo">R$ {{ "%.2f"|format(p.total_custos)|replace('.',',') }}</td>
                                     <td class="text-end">R$ {{ "%.2f"|format(p.resultado_liquido)|replace('.',',') }}</td>
                                     <td class="text-center">
-                                        <button class="btn btn-sm btn-primary" onclick="editarCliente({{ p.id }})" title="Editar Contrato">✏️</button>
-                                        <button class="btn btn-sm btn-danger" onclick="excluirCliente({{ p.id }})" title="Excluir Contrato">🗑️</button>
+                                        <button class="btn-icon-action" onclick="editarCliente({{ p.id }})" title="Editar Contrato"><i class="bi bi-pencil-fill"></i></button>
+                                        <button class="btn-icon-action" onclick="excluirCliente({{ p.id }})" title="Excluir Contrato"><i class="bi bi-trash-fill"></i></button>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -431,9 +513,9 @@
                                     <td class="text-end valor-positivo">R$ {{ "%.2f"|format(f.total_liquido or 0)|replace('.',',') }}</td> 
                                     <td class="text-end fw-bold">R$ {{ "%.2f"|format(f.total_a_pagar or 0)|replace('.',',') }}</td> 
                                   <td class="text-center">
-                                    <button class="btn btn-sm btn-secondary" onclick="window.open('/api/fornecedores/{{ f.id }}/relatorio', '_blank')" title="Gerar Relatório do Cooperado">📄</button>
-                                    <button class="btn btn-sm btn-primary" onclick="editarFornecedor({{ f.id }})" title="Editar Cooperado">✏️</button>
-                                    <button class="btn btn-sm btn-danger" onclick="excluirFornecedor({{ f.id }})" title="Excluir Cooperado">🗑️</button>
+                                    <button class="btn-icon-action" onclick="window.open('/api/fornecedores/{{ f.id }}/relatorio', '_blank')" title="Gerar Relatório do Cooperado"><i class="bi bi-file-earmark-text-fill"></i></button>
+                                    <button class="btn-icon-action" onclick="editarFornecedor({{ f.id }})" title="Editar Cooperado"><i class="bi bi-pencil-fill"></i></button>
+                                    <button class="btn-icon-action" onclick="excluirFornecedor({{ f.id }})" title="Excluir Cooperado"><i class="bi bi-trash-fill"></i></button>
                                 </td>
                                 </tr>
                                 {% endfor %}
@@ -482,9 +564,9 @@
                                     <td class="text-end">R$ {{ "%.2f"|format(n.valor_liquido_nota or 0)|replace('.',',') }}</td>
                                     <td><span class="badge-status badge-{{ n.status|default('')|lower }}">{{ n.status or '-' }}</span></td>
                                     <td class="text-center">
-                                        <button class="btn btn-sm btn-secondary" onclick="window.open('/api/notas/{{ n.id }}/relatorio', '_blank')" title="Gerar Relatório">📄</button>
-                                        <button class="btn btn-sm btn-primary" onclick="editarNota({{ n.id }})">✏️</button>
-                                        <button class="btn btn-sm btn-danger" onclick="excluirNota({{ n.id }})">🗑️</button>
+                                        <button class="btn-icon-action" onclick="window.open('/api/notas/{{ n.id }}/relatorio', '_blank')" title="Gerar Relatório"><i class="bi bi-file-earmark-text-fill"></i></button>
+                                        <button class="btn-icon-action" onclick="editarNota({{ n.id }})" title="Editar Nota"><i class="bi bi-pencil-fill"></i></button>
+                                        <button class="btn-icon-action" onclick="excluirNota({{ n.id }})" title="Excluir Nota"><i class="bi bi-trash-fill"></i></button>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -532,8 +614,8 @@
                                     <td class="text-end">R$ {{ "%.2f"|format(p.valor_liquido or 0)|replace('.',',') }}</td>
                                     <td><span class="badge-status badge-{{ p.status|default('')|lower }}">{{ p.status or '-' }}</span></td>
                                     <td class="text-center">
-                                        <button class="btn btn-sm btn-primary" onclick="editarCusto({{ p.id }})" title="Editar Pagamento">✏️</button>
-                                        <button class="btn btn-sm btn-danger" onclick="excluirCusto({{ p.id }})" title="Excluir Pagamento">🗑️</button>
+                                        <button class="btn-icon-action" onclick="editarCusto({{ p.id }})" title="Editar Pagamento"><i class="bi bi-pencil-fill"></i></button>
+                                        <button class="btn-icon-action" onclick="excluirCusto({{ p.id }})" title="Excluir Pagamento"><i class="bi bi-trash-fill"></i></button>
                                     </td>
                                 </tr>
                                 {% endfor %}
