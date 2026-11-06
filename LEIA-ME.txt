@@ -1,0 +1,36 @@
+INSTALAÇÃO
+Copie app.py, numeros.py e processador_danfe.py para a pasta do projeto.
+Copie templates/tabelas.html para a pasta templates. Reinicie o Flask e atualize com Ctrl+F5.
+A inicialização acrescenta contrato_referencia em notas_fiscais, sem apagar dados.
+
+ATUALIZAR DOCUMENTOS EXISTENTES
+Reenvie o mesmo PDF. Notas existentes não são duplicadas: cidade e referência de contrato vazias são preenchidas. Compras existentes com cliente vazio recebem o vínculo quando o cliente é identificado sem ambiguidade. Valores financeiros já cadastrados não são sobrescritos; confira os lançamentos antigos em Editar.
+
+LEITURA E EXIBIÇÃO
+Venda: cliente/prefeitura, município, referência do contrato, número, data e itens.
+Compra: cooperado, número da compra, prefeitura de destino, itens, Funrural e líquido informado.
+Nas compras, o contrato é obtido das vendas vinculadas aos produtos. Compras sem venda não recebem contrato por suposição.
+A tabela de compras mostra cooperado, nota de compra, cliente/contrato e as notas de venda vinculadas.
+A tabela de vendas mostra cliente e referência do contrato. A visão geral mostra o nome do cliente e as referências identificadas.
+A conciliação exige cliente, produto e valor iguais, sem repetição ambígua. Correspondências ambíguas ficam pendentes, assim como produtos sem venda.
+Compras não somam ao faturamento. Custos são rateados pelos produtos vinculados. O líquido da compra é devido ao cooperado; o valor líquido das notas é o repasse líquido dos produtos vinculados; custos na tabela de vendas representam a diferença entre valor NF e esse líquido. Repasses efetivos continuam separados.
+
+CONTRATOS
+O PDF informa contrato 44/2024, não o total contratado. O total precisa estar cadastrado. Saldo = total cadastrado menos vendas.
+A estrutura original agrega por cliente/prefeitura: se houver vários contratos para o mesmo cliente, a visão geral lista as referências e mantém os totais agregados por cliente. Não há cadastro individual completo de contratos nesta estrutura.
+
+FORMATOS NUMÉRICOS
+Aceita 1234,56, 1.234,56 e 1234.56. Um único separador é decimal; informe centavos ao usar separador de milhar.
+
+VALIDAÇÃO
+Testado com COOAIPRO03-08-2026STI.pdf: duas compras, quatro vendas, contrato 44/2024 e município Santa Isabel nas vendas.
+Compra bruta: R$ 1.863,54; Funrural: R$ 27,95; líquido dos cooperados: R$ 1.835,59.
+Venda: R$ 1.577,21; descontos/custos vinculados: R$ 23,66; valor líquido das notas: R$ 1.553,55.
+Coentro de R$ 286,33 bruto (R$ 282,04 líquido) fica sem venda vinculada.
+Executadas rotinas reais de importação e conciliação em banco temporário SQLite, com adaptação do cast da expressão PostgreSQL; testadas reimportação, metadados, valores e correspondências ambíguas.
+HTML renderizado com nome/contrato nas três tabelas e JavaScript verificado. Sintaxe Python verificada.
+Não houve conexão ao PostgreSQL do usuário nem execução visual no navegador do usuário.
+
+Ajuste de apresentação: removidos valores/colunas sem nota vinculada. Total do contrato e saldo sem cadastro usam a mesma indicação Não cadastrado. A primeira coluna rola normalmente.
+
+Formulário: campo Número / identificação do contrato adicionado. Salvo no cadastro, disponível para edição e usado na tabela quando não há referência extraída nas notas. Reinicie o Flask para criar a coluna automaticamente. Para cadastros existentes, clique no lápis e preencha o novo campo.

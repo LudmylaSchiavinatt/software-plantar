@@ -1,0 +1,25 @@
+CORREÇÃO SEGURA — HISTÓRICO DE REPASSES A COOPERADOS
+
+Arquivos:
+- app_com_repasses.py: cópia do app com endpoints para consultar e registrar repasses reais.
+- tabelas_com_repasses.html: cópia da interface com botão e modal de repasse/histórico.
+- migracao_repasses_cooperados.sql: migração aditiva para PostgreSQL.
+
+O QUE MUDA
+- O botão verde de dinheiro na tabela de Pagamentos a Fornecedores abre o registro separado de repasses.
+- É possível registrar data, valor, forma, referência e observações, mantendo histórico de pagamentos parciais.
+- O valor acumulado não pode exceder o valor líquido do custo.
+- O custo só fica com status "pago" quando a soma dos repasses registrados alcança o valor líquido; repasse parcial mantém "pendente".
+- Os registros são isolados por cooperativa e não há endpoint de exclusão do histórico. A edição de um custo que já tenha repasses fica bloqueada para preservar a integridade do histórico.
+
+ANTES DE USAR
+1. Faça backup do banco PostgreSQL e guarde os arquivos originais.
+2. Aplique a migração no banco correto, por exemplo: psql -h HOST -U USUARIO -d BANCO -v ON_ERROR_STOP=1 -f migracao_repasses_cooperados.sql
+3. Configure a aplicação para servir tabelas_com_repasses.html no lugar do template atual (mantendo uma cópia do original) e use app_com_repasses.py após conferir as configurações/imports locais.
+4. Teste primeiro em cópia/homologação, com um pagamento de teste e dois repasses parciais.
+
+IMPORTANTE / LIMITAÇÕES
+- Os arquivos foram gerados como patch separado; os originais não foram alterados.
+- Foi feita verificação estática de sintaxe Python, não conexão nem teste de integração com seu banco real.
+- O resumo geral existente da aplicação calcula pendências por status e pode continuar exibindo o valor líquido integral como pendente durante um repasse parcial. O modal mostra corretamente o saldo restante do repasse. Para que todos os relatórios/dashboard reflitam o saldo parcial, é necessária uma atualização adicional específica das consultas/views que alimentam cada relatório.
+- Não edite o custo depois de registrar repasses: a aplicação atual permite editar custos. Se o valor líquido for alterado após um repasse, o histórico pode não corresponder ao novo valor; recomenda-se bloquear edição de custos com repasses em uma próxima etapa.

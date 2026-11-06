@@ -1,0 +1,80 @@
+
+== usuarios (cooperativa de cada um)
+{'id': 11, 'email': 'thiaguinho123@gmail.com', 'tipo': 'admin', 'cooperativa_id': 3}
+{'id': 12, 'email': 'ludmyla123@gmail.com', 'tipo': 'admin', 'cooperativa_id': 4}
+
+== vinculos
+
+== clientes
+{'id': 28, 'cooperativa_id': None, 'nome': 'Pref Municipal de Santa Isabel'}
+{'id': 29, 'cooperativa_id': None, 'nome': 'Pref Municipal de Igarata'}
+{'id': 30, 'cooperativa_id': None, 'nome': 'Pref Municipal de São Jose dos Campos'}
+{'id': 31, 'cooperativa_id': None, 'nome': 'Pref Municipal de São Bernardo'}
+{'id': 32, 'cooperativa_id': None, 'nome': 'Pref Municipal de ferraz de Vasconcelo'}
+{'id': 33, 'cooperativa_id': None, 'nome': 'Pref Municipal de Guararema'}
+{'id': 34, 'cooperativa_id': None, 'nome': 'Pref Municipal de Itaqua'}
+{'id': 35, 'cooperativa_id': None, 'nome': 'Pref Municipal de  Poa'}
+{'id': 36, 'cooperativa_id': None, 'nome': 'Conab - Iguatemi'}
+{'id': 37, 'cooperativa_id': None, 'nome': 'Conab - Perus'}
+{'id': 38, 'cooperativa_id': None, 'nome': 'Conab - Montanhão'}
+{'id': 39, 'cooperativa_id': None, 'nome': 'Conab -Estadio'}
+{'id': 54, 'cooperativa_id': 3, 'nome': 'PREFEITURA MUNICIPAL DE SANTA ISABEL'}
+
+== fornecedores
+{'id': 23, 'cooperativa_id': None, 'nome': 'José Carlos Silva'}
+{'id': 24, 'cooperativa_id': None, 'nome': 'Maria Aparecida Santos'}
+{'id': 25, 'cooperativa_id': None, 'nome': 'Antônio Ferreira Lima'}
+{'id': 26, 'cooperativa_id': None, 'nome': 'João Batista Oliveira'}
+{'id': 27, 'cooperativa_id': None, 'nome': 'Francisco Pereira Costa'}
+{'id': 28, 'cooperativa_id': None, 'nome': 'Ana Paula Rodrigues'}
+{'id': 29, 'cooperativa_id': None, 'nome': 'Pedro Henrique Souza'}
+{'id': 30, 'cooperativa_id': None, 'nome': 'Luiz Fernando Almeida'}
+{'id': 31, 'cooperativa_id': None, 'nome': 'Sebastião Ribeiro Neto'}
+{'id': 32, 'cooperativa_id': None, 'nome': 'Marcos Vinícius Dias'}
+{'id': 33, 'cooperativa_id': None, 'nome': 'Claudia Regina Martins'}
+{'id': 34, 'cooperativa_id': None, 'nome': 'Roberto Carlos Mendes'}
+{'id': 35, 'cooperativa_id': None, 'nome': 'Valdir Aparecido Ramos'}
+{'id': 36, 'cooperativa_id': None, 'nome': 'Edson Luiz Barbosa'}
+{'id': 37, 'cooperativa_id': None, 'nome': 'Rosângela de Fátima Cunha'}
+{'id': 40, 'cooperativa_id': 4, 'nome': 'EUGENIO DE MORAES'}
+{'id': 41, 'cooperativa_id': 4, 'nome': 'PAULO ROBERTO MARTINS DIAS'}
+{'id': 42, 'cooperativa_id': 3, 'nome': 'EUGENIO DE MORAES'}
+{'id': 43, 'cooperativa_id': 3, 'nome': 'PAULO ROBERTO MARTINS DIAS'}
+
+== colunas vw_pagamentos_resumo
+{'column_name': 'cooperativa_id'}
+{'column_name': 'id'}
+{'column_name': 'fornecedor'}
+{'column_name': 'cota'}
+{'column_name': 'total_pagamentos'}
+{'column_name': 'total_bruto'}
+{'column_name': 'saldo'}
+{'column_name': 'total_descontos'}
+{'column_name': 'total_liquido'}
+{'column_name': 'total_a_pagar'}
+
+== colunas vw_resultados_por_prefeitura
+{'column_name': 'cooperativa_id'}
+{'column_name': 'id'}
+{'column_name': 'prefeitura'}
+{'column_name': 'cidade'}
+{'column_name': 'total_notas'}
+{'column_name': 'valor_total_contratos'}
+{'column_name': 'valor_recebido'}
+{'column_name': 'valor_a_receber'}
+{'column_name': 'total_custos'}
+{'column_name': 'resultado_liquido'}
+
+== colunas contrato_cooperado
+{'column_name': 'id', 'is_nullable': 'NO'}
+{'column_name': 'cliente_id', 'is_nullable': 'NO'}
+{'column_name': 'fornecedor_id', 'is_nullable': 'NO'}
+{'column_name': 'cota', 'is_nullable': 'NO'}
+{'column_name': 'created_at', 'is_nullable': 'YES'}
+{'column_name': 'cooperativa_id', 'is_nullable': 'NO'}
+
+== restricoes contrato_cooperado
+{'conname': 'contrato_cooperado_pkey', 'definicao': 'PRIMARY KEY (id)'}
+{'conname': 'contrato_cooperado_cliente_id_fornecedor_id_key', 'definicao': 'UNIQUE (cliente_id, fornecedor_id)'}
+{'conname': 'fk_contrato_cliente_tenant', 'definicao': 'FOREIGN KEY (cliente_id, cooperativa_id) REFERENCES clientes(id, cooperativa_id) ON DELETE CASCADE'}
+{'conname': 'fk_contrato_fornecedor_tenant', 'definicao': 'FOREIGN KEY (fornecedor_id, cooperativa_id) REFERENCES fornecedores(id, cooperativa_id) ON DELETE CASCADE'}

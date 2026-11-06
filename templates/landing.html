@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -147,6 +148,7 @@
 <body>
     <div class="bg-animated"></div>
     <div class="content">
+{% with mensagens = get_flashed_messages(with_categories=true) %}{% for categoria, mensagem in mensagens %}<div class="container mt-3"><div class="alert alert-{{ categoria }}" role="alert">{{ mensagem }}</div></div>{% endfor %}{% endwith %}
         <nav class="navbar">
             <div class="container">
                 <span class="navbar-brand"><i class="bi bi-flower2" style="color:#4caf50"></i> KOKUE</span>
@@ -190,7 +192,7 @@
             <!-- Usuário já logado -->
             <div class="section-label">Sua conta</div>
             <div class="auth-grid">
-                <a href="{{ url_for('tabelas') if current_user.tipo == 'cooperativa' else url_for('meu_extrato') }}" class="action-card">
+                <a href="{{ url_for('tabelas') if current_user.tipo == 'admin' else url_for('meu_extrato') }}" class="action-card">
                     <div class="icon-wrap icon-login"><i class="bi bi-speedometer2"></i></div>
                     <h3>Meu Painel</h3>
                     <p>Logado como {{ current_user.email }}. Acesse seus dados e relatórios.</p>
@@ -222,7 +224,7 @@
             <!-- Estes cards levam a rotas restritas ao papel 'cooperativa' (protegidas no backend
                  com @login_required + checagem de tipo). Por isso só aparecem para quem já está
                  logado como cooperativa; não confie apenas nisso, o backend já valida de novo. -->
-            {% if current_user.is_authenticated and current_user.tipo == 'cooperativa' %}
+            {% if current_user.is_authenticated and current_user.tipo == 'admin' %}
             <div class="section-label">Painel</div>
             <div class="action-grid">
                 <a href="/painel/graficos" class="action-card">
@@ -235,6 +237,7 @@
                     <h3>Tabelas</h3>
                     <p>Consulte notas fiscais, pagamentos, fornecedores e prefeituras com filtros e busca avançada.</p>
                 </a>
+                <a href="/minha-conta" class="action-card"><div class="icon-wrap icon-login"><i class="bi bi-person-circle"></i></div><h3>Minha conta</h3><p>Dados e segurança da cooperativa.</p></a>
                 <a href="/painel/visualizador" class="action-card">
                     <div class="icon-wrap" style="background:linear-gradient(135deg,#00695c,#26a69a)"><i class="bi bi-grid-3x3"></i></div>
                     <h3>Visualizador BD</h3>
@@ -247,7 +250,7 @@
             <!-- ATENÇÃO: estas rotas (/api/banco/download e /api/banco/upload) precisam ser
                  protegidas por autenticação/permissão de admin no backend. Não confie apenas
                  em esconder o botão no front-end: valide a sessão/role no servidor também. -->
-            {% if current_user.is_authenticated and current_user.tipo == 'cooperativa' %}
+            {% if current_user.is_authenticated and current_user.tipo == 'admin' %}
             <div class="db-tools-hint">Ferramentas administrativas (cooperativa)</div>
             <div class="db-tools" id="db-tools">
                 <a href="/api/banco/download" class="db-btn db-btn-download">
@@ -324,6 +327,7 @@
                             <label class="form-label">Senha</label>
                             <input type="password" name="senha" class="form-control" required>
                         </div>
+                        <div class="mb-3"><label class="form-label">CNPJ da cooperativa (se usar o mesmo e-mail em mais de uma)</label><input name="cooperativa_cnpj" class="form-control" maxlength="20"></div>
                         <button type="submit" class="btn btn-success w-100">Entrar</button>
                     </form>
                     <div class="auth-switch">
@@ -361,6 +365,7 @@
                     <div class="alert alert-success py-2">{{ sucesso_cadastro }}</div>
                     {% else %}
                     <form method="POST" action="{{ url_for('cadastro') }}">
+                        <input type="hidden" name="csrf_token" value="{{ token_conta() }}">
                         <input type="hidden" name="tipo" id="input-tipo" value="cooperado">
 
                         <div class="mb-3">
@@ -376,13 +381,27 @@
                             <div class="mb-3">
                                 <label class="form-label">CPF ou CNPJ (o mesmo cadastrado na cooperativa)</label>
                                 <input type="text" name="cpf_cnpj" class="form-control" placeholder="000.000.000-00">
+                            </div><div class="mb-3"><label class="form-label">CNPJ da sua cooperativa</label><input name="cnpj_cooperativa" class="form-control" maxlength="20" required>
                             </div>
                         </div>
 
                         <div class="campos-cooperativa">
                             <div class="mb-3">
-                                <label class="form-label">Código de acesso da cooperativa</label>
-                                <input type="text" name="codigo_acesso" class="form-control" placeholder="Fornecido pela equipe">
+                                <label class="form-label" for="nome-cooperativa">Nome da cooperativa</label>
+                                <input id="nome-cooperativa" type="text" name="nome_cooperativa" class="form-control" maxlength="150" placeholder="Nome da cooperativa">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="cnpj-cooperativa">CNPJ da cooperativa</label>
+                                <input id="cnpj-cooperativa" type="text" name="cnpj_cooperativa" class="form-control" maxlength="20" placeholder="CNPJ da cooperativa">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="codigo-seguranca">Defina seu código de segurança</label>
+                                <input id="codigo-seguranca" type="password" name="codigo_seguranca" class="form-control" minlength="8" maxlength="64" autocomplete="new-password">
+                                <div class="form-text">De 8 a 64 caracteres, sem espaços. Use um código diferente da senha. Ele confirma alterações da conta.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="confirma-codigo-cadastro">Confirme o código</label>
+                                <input id="confirma-codigo-cadastro" type="password" name="confirma_codigo" class="form-control" minlength="8" maxlength="64" autocomplete="new-password">
                             </div>
                         </div>
 
@@ -428,9 +447,12 @@
         document.querySelector('.campos-cooperado').classList.toggle('active', tipo === 'cooperado');
         document.querySelector('.campos-cooperativa').classList.toggle('active', tipo === 'cooperativa');
         document.querySelector('[name="cpf_cnpj"]').required = (tipo === 'cooperado');
-        document.querySelector('[name="codigo_acesso"]').required = (tipo === 'cooperativa');
+        document.querySelectorAll('.campos-cooperativa input').forEach(el => { el.required = tipo === 'cooperativa'; el.disabled = tipo !== 'cooperativa'; });
+        document.querySelectorAll('.campos-cooperado input').forEach(el => { el.disabled = tipo !== 'cooperado'; });
+        const campoSenha = document.querySelector('#modalCadastro [name="senha"]');
+        campoSenha.minLength = tipo === 'cooperativa' ? 8 : 6;
     }
-    selecionarTipo('cooperado');
+    selecionarTipo({{ ('cooperativa' if request.form.get('tipo') in ['admin', 'cooperativa'] else 'cooperado') | tojson }});
 
     // Reabre automaticamente o modal certo quando o Flask renderiza erro/sucesso
     // (o form faz POST tradicional, a página recarrega, e o backend devolve

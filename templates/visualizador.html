@@ -38,7 +38,6 @@
         .sidebar-user-logout { color:rgba(255,255,255,.4); font-size:1.1rem; padding:6px; border-radius:6px; text-decoration:none; transition:all .2s; flex-shrink:0; }
         .sidebar-user-logout:hover { color:#e53935; background:rgba(229,57,53,.12); }
 
-        /* Table list in sidebar */
         .tbl-list-item {
             display:flex; align-items:center; gap:10px; padding:8px 20px;
             color:rgba(255,255,255,.55); text-decoration:none; font-size:.85rem;
@@ -58,11 +57,9 @@
         }
         .topbar h1 { font-size:1.15rem; font-weight:700; color:#1a2332; margin:0; white-space:nowrap; }
 
-        /* Toolbar */
         .toolbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
         .toolbar .btn { font-size:.82rem; padding:6px 14px; border-radius:8px; font-weight:600; }
 
-        /* Spreadsheet */
         .sheet-area { flex:1; overflow:auto; padding:0; }
         .sheet-table { width:100%; border-collapse:collapse; font-size:.82rem; }
         .sheet-table thead { position:sticky; top:0; z-index:10; }
@@ -81,11 +78,9 @@
         .sheet-table tbody tr:hover td { background:#e8f5e9; }
         .sheet-table tbody tr:hover td.row-num { background:#c8e6c9; }
 
-        /* Column resize handle */
         .col-resize { position:absolute; right:0; top:0; width:4px; height:100%; cursor:col-resize; }
         .col-resize:hover { background:#4caf50; }
 
-        /* Status bar */
         .status-bar {
             background:#fff; border-top:1px solid #e0e0e0; padding:8px 20px;
             display:flex; align-items:center; justify-content:space-between;
@@ -94,11 +89,9 @@
         .status-item { display:flex; align-items:center; gap:6px; }
         .status-item strong { color:#333; }
 
-        /* Empty state */
         .empty-state { text-align:center; padding:80px 20px; color:#999; }
         .empty-state i { font-size:4rem; margin-bottom:16px; color:#ccc; }
 
-        /* Search highlight */
         .cell-highlight { background:#fff9c4 !important; }
 
         @media(max-width:768px) { .sidebar{width:0;overflow:hidden;} .main{margin-left:0;} }
@@ -109,7 +102,7 @@
         <div class="sidebar-brand"><i class="bi bi-flower2" style="color:#4caf50"></i> KOKUE</div>
         <nav class="sidebar-nav">
             <div class="sidebar-section">Principal</div>
-            <a href="/" class="sidebar-link"><i class="bi bi-house"></i> Landing Page</a>
+            <a href="/" class="sidebar-link"><i class="bi bi-house"></i> Início</a>
             <div class="sidebar-section">Painel</div>
             <a href="/painel/graficos" class="sidebar-link"><i class="bi bi-bar-chart-line"></i> Gráficos</a>
             <a href="/painel/tabelas" class="sidebar-link"><i class="bi bi-table"></i> Tabelas</a>
@@ -118,8 +111,6 @@
             <div id="sidebar-tabelas"></div>
             <div class="sidebar-section">Ferramentas</div>
             <a href="/api/banco/excel" class="sidebar-link"><i class="bi bi-file-earmark-excel"></i> Exportar Excel</a>
-            <a href="/api/banco/download" class="sidebar-link"><i class="bi bi-download"></i> Baixar BD</a>
-            <label class="sidebar-link" style="cursor:pointer"><i class="bi bi-upload"></i> Enviar BD<input type="file" accept=".db,.sqlite,.sqlite3" onchange="uploadBD(this)" style="display:none"></label>
         </nav>
         <div class="sidebar-user">
             <div class="sidebar-user-avatar"><i class="bi bi-person-fill"></i></div>
@@ -138,7 +129,7 @@
             </div>
         </div>
     </aside>
-    <!-- Main -->
+
     <div class="main">
         <div class="topbar">
             <div>
@@ -148,7 +139,6 @@
             <div class="toolbar">
                 <input type="text" class="form-control form-control-sm" id="busca-celula" placeholder="Buscar na tabela..." style="width:200px;font-size:.82rem" oninput="buscarCelula()">
                 <a href="/api/banco/excel" class="btn btn-success"><i class="bi bi-file-earmark-excel"></i> Exportar Excel</a>
-                <a href="/api/banco/download" class="btn btn-outline-secondary"><i class="bi bi-download"></i> .db</a>
             </div>
         </div>
 
@@ -171,7 +161,6 @@
                 <span class="status-item"><i class="bi bi-columns"></i> Colunas: <strong id="st-colunas">0</strong></span>
             </div>
             <div class="d-flex gap-4">
-                <span class="status-item" id="st-soma" style="display:none"><i class="bi bi-calculator"></i> Soma: <strong id="st-soma-val">0</strong></span>
                 <span class="status-item" id="st-busca" style="display:none"><i class="bi bi-search"></i> Encontrados: <strong id="st-busca-val">0</strong></span>
             </div>
         </div>
@@ -183,18 +172,6 @@
     let dadosAtuais = [];
     let colunasAtuais = [];
 
-    async function uploadBD(input) {
-        const file = input.files[0]; if(!file) return;
-        if(!confirm(`Substituir o banco pelo arquivo "${file.name}"?\nFaça backup antes!`)) { input.value=''; return; }
-        const form = new FormData(); form.append('arquivo', file);
-        const res = await fetch('/api/banco/upload',{method:'POST',body:form});
-        const data = await res.json();
-        alert(res.ok ? data.mensagem : 'Erro: '+data.erro);
-        if(res.ok) location.reload();
-        input.value='';
-    }
-
-    // Carregar lista de tabelas no sidebar
     async function loadTabelas() {
         const tabelas = await fetch('/api/banco/tabelas').then(r=>r.json());
         const container = document.getElementById('sidebar-tabelas');
@@ -202,13 +179,11 @@
             <div class="tbl-list-item" onclick="abrirTabela('${t.nome}', this)" title="${t.nome} (${t.tipo})">
                 <span class="tipo-badge tipo-${t.tipo}">${t.tipo === 'table' ? 'TBL' : 'VW'}</span>
                 <span style="flex:1;overflow:hidden;text-overflow:ellipsis">${t.nome}</span>
-                <span class="badge-cnt">${t.registros}</span>
             </div>
         `).join('');
     }
 
     async function abrirTabela(nome, el) {
-        // Highlight sidebar
         document.querySelectorAll('.tbl-list-item').forEach(e => e.classList.remove('sel'));
         if(el) el.classList.add('sel');
 
@@ -232,11 +207,9 @@
         const head = document.getElementById('sheet-head');
         const body = document.getElementById('sheet-body');
 
-        // Header
         head.innerHTML = '<tr><th class="row-num">#</th>' +
             colunasAtuais.map(c => `<th>${c}<div class="col-resize"></div></th>`).join('') + '</tr>';
 
-        // Body
         body.innerHTML = dadosAtuais.map((row, i) =>
             '<tr><td class="row-num">' + (i+1) + '</td>' +
             colunasAtuais.map(c => {
@@ -250,7 +223,6 @@
         document.getElementById('empty-state').style.display = 'none';
         document.getElementById('sheet-table').style.display = '';
 
-        // Reset search
         document.getElementById('st-busca').style.display = 'none';
         document.getElementById('busca-celula').value = '';
     }
@@ -276,23 +248,6 @@
             stBusca.style.display = 'none';
         }
     }
-
-    // Column resize
-    let resizing = null;
-    document.addEventListener('mousedown', e => {
-        if(e.target.classList.contains('col-resize')) {
-            resizing = { th: e.target.parentElement, startX: e.clientX, startW: e.target.parentElement.offsetWidth };
-            e.preventDefault();
-        }
-    });
-    document.addEventListener('mousemove', e => {
-        if(resizing) {
-            const w = resizing.startW + (e.clientX - resizing.startX);
-            resizing.th.style.minWidth = Math.max(60, w) + 'px';
-            resizing.th.style.width = Math.max(60, w) + 'px';
-        }
-    });
-    document.addEventListener('mouseup', () => { resizing = null; });
 
     loadTabelas();
     </script>

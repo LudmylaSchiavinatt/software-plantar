@@ -58,9 +58,9 @@
             <span class="navbar-brand"><i class="bi bi-flower2"></i> PLANTAR - Gestão de Contratos</span>
             <div class="d-flex align-items-center gap-3">
                 <a href="/" class="nav-link-custom" style="border-bottom:2px solid white">Dashboard</a>
-                <a href="/graficos" class="nav-link-custom">Gráficos</a>
-                <a href="/tabelas" class="nav-link-custom">Tabelas</a>
-                <span class="text-white mx-2">|</span>
+                <a href="/painel/graficos" class="nav-link-custom">Gráficos</a>
+                <a href="/painel/tabelas" class="nav-link-custom">Tabelas</a>
+                <a href="/minha-conta" class="nav-link-custom">Minha conta</a><span class="text-white mx-2">|</span>
                 <button class="btn btn-outline-light btn-sm btn-cadastro" onclick="abrirModalNota()">
                     <i class="bi bi-plus-circle"></i> Nova Nota
                 </button>
@@ -501,6 +501,12 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+async function respostaJSON(res) {
+    const dados = await res.json().catch(() => { throw new Error('Resposta inválida do servidor. Verifique sua sessão.'); });
+    if (!res.ok) throw new Error(dados.erro || 'Não foi possível concluir a consulta.');
+    return dados;
+}
+
     const fmt = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
 
     document.getElementById('current-date').textContent =
@@ -511,14 +517,14 @@
     // ===================== LOAD DATA =====================
     async function loadData() {
         try {
-            const resumo = await fetch('/api/resumo').then(r=>r.json());
+            const resumo = await fetch('/api/resumo').then(respostaJSON);
             document.getElementById('total-receber').textContent = fmt(resumo.totais.valor_a_receber);
             document.getElementById('total-pagar').textContent = fmt(resumo.totais.valor_a_pagar);
             document.getElementById('notas-pendentes').textContent = resumo.totais.notas_pendentes;
             document.getElementById('pagamentos-pendentes').textContent = resumo.totais.pagamentos_pendentes;
 
             // Prefeituras
-            const prefs = await fetch('/api/prefeituras').then(r=>r.json());
+            const prefs = await fetch('/api/prefeituras').then(respostaJSON);
             document.querySelector('#tabela-prefeituras tbody').innerHTML = prefs.map(p => `
                 <tr>
                     <td>${p.prefeitura||'N/A'}</td>
@@ -530,7 +536,7 @@
                 </tr>`).join('');
 
             // Fornecedores
-            const forns = await fetch('/api/fornecedores').then(r=>r.json());
+            const forns = await fetch('/api/fornecedores').then(respostaJSON);
             document.querySelector('#tabela-fornecedores tbody').innerHTML = forns.slice(0,10).map(f => `
                 <tr>
                     <td>${f.fornecedor}</td>
@@ -541,7 +547,7 @@
                 </tr>`).join('');
 
             // Notas
-            const notas = await fetch('/api/notas').then(r=>r.json());
+            const notas = await fetch('/api/notas').then(respostaJSON);
             document.querySelector('#tabela-notas tbody').innerHTML = notas.map(n => `
                 <tr>
                     <td><span class="clickable" onclick="verCustosNota(${n.id},'${n.numero_nota}')">${n.numero_nota}</span></td>
@@ -555,7 +561,7 @@
                 </tr>`).join('');
 
             createCharts(prefs, resumo);
-        } catch(e) { console.error('Erro:',e); }
+        } catch(e) { console.error('Erro:',e); alert('Não foi possível carregar o dashboard. Verifique sua sessão e tente novamente.'); }
     }
 
     function createCharts(prefs, resumo) {
@@ -580,7 +586,8 @@
         chartStatus = new Chart(ctx2, {
             type:'doughnut',
             data:{
-                labels:['A Receber','A Pagar'],
+                labels:['A Receber',
+                'A Pagar'],
                 datasets:[{data:[resumo.totais.valor_a_receber,resumo.totais.valor_a_pagar],backgroundColor:['#2e7d32','#ff8f00']}]
             },
             options:{responsive:true,plugins:{tooltip:{callbacks:{label:c=>`${c.label}: ${fmt(c.raw)}`}}}}
@@ -591,7 +598,7 @@
     async function abrirModalNota() {
         const sel = document.getElementById('nota-cliente');
         sel.innerHTML = '<option value="">Selecione...</option>';
-        const clientes = await fetch('/api/clientes_lista').then(r=>r.json());
+        const clientes = await fetch('/api/clientes_lista').then(respostaJSON);
         clientes.forEach(c => { sel.innerHTML += `<option value="${c.id}">${c.nome} (${c.tipo})</option>`; });
         document.getElementById('nota-data').value = new Date().toISOString().slice(0,10);
         new bootstrap.Modal(document.getElementById('modalNota')).show();
@@ -629,7 +636,7 @@
         // Notas dropdown
         const selNota = document.getElementById('custo-nota');
         selNota.innerHTML = '<option value="">Selecione a nota...</option>';
-        const notas = await fetch('/api/notas_lista').then(r=>r.json());
+        const notas = await fetch('/api/notas_lista').then(respostaJSON);
         notas.forEach(n => {
             const opt = document.createElement('option');
             opt.value = n.id;
@@ -641,7 +648,7 @@
         // Fornecedores dropdown
         const selForn = document.getElementById('custo-fornecedor');
         selForn.innerHTML = '<option value="">Selecione...</option>';
-        const forns = await fetch('/api/fornecedores_lista').then(r=>r.json());
+        const forns = await fetch('/api/fornecedores_lista').then(respostaJSON);
         forns.forEach(f => { selForn.innerHTML += `<option value="${f.id}">${f.nome}</option>`; });
 
         document.getElementById('custo-data').value = new Date().toISOString().slice(0,10);
@@ -719,7 +726,7 @@
     // ===================== VER CUSTOS DE UMA NOTA =====================
     async function verCustosNota(notaId, numNota) {
         document.getElementById('custos-nota-titulo').textContent = numNota;
-        const custos = await fetch(`/api/custos/${notaId}`).then(r=>r.json());
+        const custos = await fetch(`/api/custos/nota/${notaId}`).then(respostaJSON);
         let totalCompra=0, totalDesc=0, totalLiq=0;
         const tbody = document.querySelector('#tabela-custos-nota tbody');
         if(custos.length===0){

@@ -41,12 +41,16 @@ DIST = ROOT / "dist"
 BUILD = ROOT / "build_temp"
 ARQUIVO_CHAVE_DISTRIBUICAO = ROOT / "distribution.key"
 
-# Arquivos Python que serão encriptados
-PY_FILES = [
-    "app.py",
-    "processador_coaipro.py",
-    "seed_loader.py",
-]
+# Arquivos Python que serão encriptados.
+# Descoberta automática: pega todos os .py da raiz do projeto (exceto o
+# próprio build_exe.py) para não esquecer módulos locais importados pelo
+# app.py, como aconteceu antes com numeros.py, processador_danfe.py,
+# cotacoes_service.py e conta_seguranca.py.
+_ARQUIVOS_IGNORADOS = {"build_exe.py"}
+PY_FILES = sorted(
+    p.name for p in ROOT.glob("*.py")
+    if p.name not in _ARQUIVOS_IGNORADOS
+)
 
 # Pastas/arquivos de dados que vão junto (sem encriptar)
 DATA_FILES = [
@@ -258,6 +262,9 @@ a = Analysis(
         "flask", "flask_cors", "jinja2", "markupsafe",
         "sqlite3", "pandas", "openpyxl", "cryptography",
         "cryptography.fernet", "werkzeug",
+        "psycopg2", "psycopg2.extras", "psycopg2.errors",
+        "dotenv", "pdfplumber",
+        "flask_login", "werkzeug.security",
     ],
     hookspath=[],
     hooksconfig={{}},

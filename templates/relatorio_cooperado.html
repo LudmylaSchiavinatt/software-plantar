@@ -102,22 +102,22 @@
                 <div class="t-label" style="margin-top: 10px;">PERÍODO</div>
                 <div class="t-value" style="font-size: 8pt;">{{ periodo or 'Histórico completo' }}</div>
                 <div class="t-label" style="text-align: center; margin-top: 10px; font-size: 7pt;">
-                    Documento gerado internamente pelo sistema PLANTAR,<br>sem valor fiscal.
+                    Documento gerado internamente pelo sistema KOKUE,<br>sem valor fiscal.
                 </div>
             </div>
         </div>
 
         <div class="row">
             <div class="col" style="width: 50%;"><div class="t-label">NATUREZA DO DOCUMENTO</div><div class="t-value">RESUMO DE ENTREGAS E PAGAMENTOS DO COOPERADO</div></div>
-            <div class="col" style="width: 50%;"><div class="t-label">GERADO POR</div><div class="t-value">SISTEMA PLANTAR</div></div>
+            <div class="col" style="width: 50%;"><div class="t-label">GERADO POR</div><div class="t-value">SISTEMA KOKUE</div></div>
         </div>
 
         <!-- Dados do Cooperado -->
         <div class="section-title">COOPERADO</div>
         <div class="row">
             <div class="col" style="width: 60%;"><div class="t-label">NOME</div><div class="t-value">{{ fornecedor.nome }}</div></div>
-            <div class="col" style="width: 20%;"><div class="t-label">CPF/CNPJ</div><div class="t-value">{{ fornecedor.cpf_cnpj or '-' }}</div></div>
-            <div class="col" style="width: 20%;"><div class="t-label">CIDADE</div><div class="t-value">{{ fornecedor.cidade or '-' }}</div></div>
+            <div class="col" style="width: 16.66%;"><div class="t-label">CPF/CNPJ</div><div class="t-value">{{ fornecedor.cpf_cnpj or '-' }}</div></div>
+            <div class="col" style="width: 16.66%;"><div class="t-label">CIDADE</div><div class="t-value">{{ fornecedor.cidade or '-' }}</div></div>
         </div>
 
         <!-- Histórico de Entregas -->
@@ -158,11 +158,12 @@
         <!-- Resumo Financeiro -->
         <div class="section-title">RESUMO FINANCEIRO</div>
         <div class="row resumo-final">
-            <div class="col" style="width: 20%;"><div class="t-label">Cota</div><div class="t-value">R$ {{ "%.2f"|format(resumo.cota or 0) }}</div></div>
-            <div class="col" style="width: 20%;"><div class="t-label">Total Bruto</div><div class="t-value">R$ {{ "%.2f"|format(resumo.total_bruto or 0) }}</div></div>
-            <div class="col" style="width: 20%;"><div class="t-label">Descontos</div><div class="t-value" style="color:#c62828">- R$ {{ "%.2f"|format(resumo.total_descontos or 0) }}</div></div>
-            <div class="col destaque" style="width: 20%;"><div class="t-label">Total Líquido</div><div class="t-value">R$ {{ "%.2f"|format(resumo.total_liquido or 0) }}</div></div>
-            <div class="col destaque" style="width: 20%;"><div class="t-label">Saldo a Receber</div><div class="t-value">R$ {{ "%.2f"|format(resumo.total_a_pagar or 0) }}</div></div>
+            <div class="col" style="width: 16.66%;"><div class="t-label">Cota</div><div class="t-value">R$ {{ "%.2f"|format(resumo.cota or 0) }}</div></div>
+            <div class="col" style="width: 16.66%;"><div class="t-label">Total Bruto</div><div class="t-value">R$ {{ "%.2f"|format(resumo.total_bruto or 0) }}</div></div>
+            <div class="col" style="width: 16.66%;"><div class="t-label">Descontos</div><div class="t-value" style="color:#c62828">- R$ {{ "%.2f"|format(resumo.total_descontos or 0) }}</div></div>
+            <div class="col destaque" style="width: 16.66%;"><div class="t-label">Total Líquido</div><div class="t-value">R$ {{ "%.2f"|format(resumo.total_liquido or 0) }}</div></div>
+            <div class="col" style="width: 16.66%;"><div class="t-label">Já Recebido</div><div class="t-value">R$ {{ "%.2f"|format(resumo.total_repassado or 0) }}</div></div>
+            <div class="col destaque" style="width: 16.66%;"><div class="t-label">Saldo a Receber</div><div class="t-value">R$ {{ "%.2f"|format(resumo.total_a_pagar or 0) }}</div></div>
         </div>
 
         <!-- Dados Adicionais -->

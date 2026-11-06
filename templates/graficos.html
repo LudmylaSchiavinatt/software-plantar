@@ -88,7 +88,7 @@
         <div class="sidebar-brand"><i class="bi bi-flower2" style="color:#4caf50"></i> KOKUE</div>
         <nav class="sidebar-nav">
             <div class="sidebar-section">Principal</div>
-            <a href="/" class="sidebar-link"><i class="bi bi-house"></i> Landing Page</a>
+            <a href="/" class="sidebar-link"><i class="bi bi-house"></i> Início</a>
             <div class="sidebar-section">Painel</div>
             <a href="/painel/graficos" class="sidebar-link active"><i class="bi bi-bar-chart-line"></i> Gráficos</a>
             <a href="/painel/tabelas" class="sidebar-link"><i class="bi bi-table"></i> Tabelas</a>
@@ -98,7 +98,9 @@
             <a href="/painel/tabelas#fornecedores" class="sidebar-link"><i class="bi bi-truck"></i> Fornecedores</a>
             <a href="/painel/tabelas#notas" class="sidebar-link"><i class="bi bi-receipt"></i> Notas Fiscais</a>
             <a href="/painel/tabelas#pagamentos" class="sidebar-link"><i class="bi bi-cash-coin"></i> Pagamentos</a>
-            <div class="sidebar-section">Ferramentas</div>
+            <div class="sidebar-section">Conta</div>
+<a href="/minha-conta" class="sidebar-link"><i class="bi bi-person-circle"></i> Minha conta</a>
+<div class="sidebar-section">Ferramentas</div>
             <a href="/api/banco/excel" class="sidebar-link"><i class="bi bi-file-earmark-excel"></i> Exportar Excel</a>
             <a href="/api/banco/download" class="sidebar-link"><i class="bi bi-download"></i> Baixar BD</a>
             <label class="sidebar-link" style="cursor:pointer"><i class="bi bi-upload"></i> Enviar BD<input type="file" accept=".db,.sqlite,.sqlite3" onchange="uploadBD(this)" style="display:none"></label>
@@ -174,6 +176,12 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+async function respostaJSON(res) {
+    const dados = await res.json().catch(() => { throw new Error('Resposta inválida do servidor. Verifique sua sessão.'); });
+    if (!res.ok) throw new Error(dados.erro || 'Não foi possível concluir a consulta.');
+    return dados;
+}
+
     async function uploadBD(input) {
         const file = input.files[0]; if(!file) return;
         if(!confirm(`Substituir o banco pelo arquivo "${file.name}"?\nFaça backup antes!`)) { input.value=''; return; }
@@ -189,9 +197,9 @@
 
     async function load() {
         const [resumo, prefs, forns] = await Promise.all([
-            fetch('/api/resumo').then(r=>r.json()),
-            fetch('/api/prefeituras').then(r=>r.json()),
-            fetch('/api/fornecedores').then(r=>r.json()),
+            fetch('/api/resumo').then(respostaJSON),
+            fetch('/api/prefeituras').then(respostaJSON),
+            fetch('/api/fornecedores').then(respostaJSON),
         ]);
 
         document.getElementById('kpi-receber').textContent = fmt(resumo.totais.valor_a_receber);
