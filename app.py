@@ -67,6 +67,7 @@ DB_CONFIG = {
     'dbname': os.environ.get('DB_NAME', 'coaipro'),
     'user': os.environ.get('DB_USER', 'postgres'),
     'password': os.environ.get('DB_PASSWORD', ''),
+    'sslmode': os.environ.get('DB_SSLMODE', 'prefer'),
 }
 DATABASE = DB_CONFIG['dbname']
 

@@ -18,11 +18,12 @@ PASTA_PLANILHAS_MODELO = 'planilhas_modelo'
 # Mesmos defaults de app.py — SUBSTITUA pelos dados reais do Postgres
 # de produção antes do build, assim o .exe funciona sem precisar de .env.
 DB_CONFIG = {
-    'host': os.environ.get('DB_HOST', 'SEU_HOST_AQUI'),
+    'host': os.environ.get('DB_HOST', 'localhost'),
     'port': os.environ.get('DB_PORT', '5432'),
     'dbname': os.environ.get('DB_NAME', 'coaipro'),
-    'user': os.environ.get('DB_USER', 'SEU_USUARIO_AQUI'),
-    'password': os.environ.get('DB_PASSWORD', 'SUA_SENHA_AQUI'),
+    'user': os.environ.get('DB_USER', 'postgres'),
+    'password': os.environ.get('DB_PASSWORD', ''),
+    'sslmode': os.environ.get('DB_SSLMODE', 'prefer'),
 }
 def _dir_base():
     return Path(__file__).resolve().parent
