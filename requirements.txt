@@ -7,3 +7,6 @@ Flask-Login==0.6.3
 werkzeug==2.3.8
 cryptography
 gunicorn
+psycopg2-binary
+python-dotenv
+pdfplumber
